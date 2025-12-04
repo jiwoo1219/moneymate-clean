@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>노랑가계부 MoneyMate</title>
+
+<style>
+  /* 박스 버튼 */
+  .box-btn{
+    background:var(--y-100);
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:20px;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .box-btn:hover{
+    background:var(--y-200);
+    transform:scale(1.05);
+  }
+  .box-btn:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+
+  :root{
+    --y-50:#FFFAE5;
+    --y-100:#FFF1B8;
+    --y-200:#FFE680;
+    --y-300:#FFD84D;
+    --y-400:#FFC93A;
+    --y-600:#CC9A00;
+    --ink:#3B3B3B;
+    --line:#E9E2B0;
+    --white:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#C62828;
+    --muted:#7A7A7A;
+    --radius:16px;
+    --shadow:0 6px 24px rgba(0,0,0,.08);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Pretendard","Inter",system-ui,AppleSDGothicNeo,Segoe UI,Arial,sans-serif;
+    color:var(--ink);
+    background:var(--y-50);
+  }
+  a{color:inherit;text-decoration:none}
+  button,input,select,textarea{font-family:inherit}
+
+  .container{max-width:1100px;margin:0 auto;padding:24px}
+  .page{display:none}
+  .page.active{display:block}
+  .card{
+    background:var(--white);
+    border-radius:var(--radius);
+    padding:16px;
+    border:1px solid var(--line);
+    box-shadow:var(--shadow);
+  }
+  .btn{
+    background:var(--y-300);
+    color:#3b2f00;
+    border:none;
+    border-radius:12px;
+    padding:10px 14px;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+  }
+  .btn:hover{background:var(--y-400)}
+  .btn.ghost{
+    background:transparent;
+    border:1px solid var(--line);
+  }
+  .input, .select{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:white;
+    font-size:14px;
+  }
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .col{flex:1 1 260px}
+  .hidden{display:none!important}
+
+  /* Header */
+  .header{
+    position:sticky;
+    top:0;
+    z-index:20001;
+    background:linear-gradient(180deg, var(--y-100), rgba(0,0,0,0));
+    backdrop-filter:saturate(120%);
+  }
+  .header-wrap{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 24px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .hamburger{
+    width:36px;height:36px;border-radius:10px;border:1px solid var(--line);
+    background:white;display:grid;place-items:center;cursor:pointer;
+  }
+  .hamburger i{
+    display:block;width:18px;height:2px;background:var(--ink);position:relative;
+  }
+  .hamburger i:before,.hamburger i:after{
+    content:"";position:absolute;left:0;width:18px;height:2px;background:var(--ink);
+  }
+  .hamburger i:before{top:-6px}
+  .hamburger i:after{top:6px}
+
+  .kpi{font-size:18px;font-weight:800}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* Avatar & dropdown */
+  .avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:linear-gradient(135deg,#fff,var(--y-100));display:grid;place-items:center;cursor:pointer}
+  .dropdown{position:absolute;right:0;top:46px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:160px}
+  .dropdown ul{list-style:none;margin:0;padding:6px}
+  .dropdown li{padding:8px;border-radius:8px;cursor:pointer;font-size:14px}
+  .dropdown li:hover{background:var(--y-50)}
+  .dropdown.hidden{display:none}
+
+  /* Sheet 메뉴 */
+  .sheet{
+    position:fixed;
+    inset:0;
+    display:none;
+    z-index:10000;
+  }
+  .sheet.active{display:block}
+  .sheet .backdrop{
+    position:absolute;inset:0;background:rgba(0,0,0,.18);
+  }
+  .sheet .panel{
+    padding-top:60px !important;
+    position:absolute;left:0;top:0;bottom:0;width:300px;
+    background:white;border-right:1px solid var(--line);
+    padding:18px;display:flex;flex-direction:column;gap:16px;
+    box-shadow:var(--shadow);
+  }
+  .menu-group{display:flex;flex-direction:column;gap:8px}
+  .menu-group button{width:100%;text-align:left;justify-content:flex-start}
+
+  /* Switch */
+  .switch{display:flex;align-items:center;gap:10px;font-size:13px}
+  .switch input{appearance:none;width:44px;height:26px;background:#ddd;border-radius:999px;position:relative;outline:none;cursor:pointer}
+  .switch input:checked{background:var(--y-300)}
+  .switch input:before{
+    content:"";position:absolute;width:20px;height:20px;border-radius:50%;left:3px;top:3px;background:#fff;transition:.2s;
+  }
+  .switch input:checked:before{left:21px}
+
+  /* Auth */
+  .auth-wrap{max-width:420px;margin:40px auto;}
+  .auth-logo{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:12px}
+  .auth-logo i{width:34px;height:34px;border-radius:10px;background:var(--y-300);display:inline-block}
+  .auth-tabs{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+  .auth-tabs button{flex:1}
+
+  /* 메인 */
+  .grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+  .tile{padding:16px}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:999px;
+    border:1px solid var(--line);background:white;
+    font-size:13px;
+  }
+
+  /* 테이블 공통 */
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  th,td{padding:8px;border-bottom:1px solid var(--line);font-size:13px}
+  th{text-align:left;color:#5A4E00;background:rgba(255,249,190,0.4)}
+
+  /* 캘린더 */
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
+  .day{
+    min-height:90px;padding:8px;border-radius:10px;
+    border:1px solid var(--line);
+    background:white;display:flex;flex-direction:column;
+  }
+  .date{font-weight:700}
+  .badge{
+    display:inline-block;padding:2px 6px;border-radius:6px;
+    background:var(--y-100);border:1px solid var(--line);font-size:11px
+  }
+  .tag-hi{background:#FFE0E0;border-color:#ffc7c7}
+  .tag-lo{background:#E7FFE7;border-color:#c9f5c9}
+
+  canvas{width:100%;height:260px}
+
+  /* 강아지 */
+  .dog-card{display:grid;grid-template-columns:1.1fr 1.1fr;gap:16px}
+  .dog-left{position:relative;overflow:hidden;border-radius:var(--radius);background:linear-gradient(180deg,#FFF9D1,#FFF4A4)}
+  .dog-img{
+    position:absolute;
+    left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    box-shadow:0 18px 40px rgba(0,0,0,.15);
+  }
+  @keyframes float{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-10px)}}
+  .bone{position:absolute;bottom:14px;left:14px;background:#fff;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:13px}
+  .dog-right{padding:16px;display:flex;flex-direction:column;gap:10px}
+  .level-pill{display:inline-flex;gap:8px;align-items:center;background:var(--y-100);border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px}
+  .progress{height:12px;background:#FFF5CC;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--y-300),#FFE072)}
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .actions button{padding:10px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:13px;cursor:pointer}
+
+  /* Toast */
+  .toast{
+    position:fixed;right:20px;bottom:20px;
+    background:#2d3436;color:#fff;padding:10px 14px;
+    border-radius:999px;font-size:13px;
+    opacity:0;pointer-events:none;
+    transform:translateY(8px);
+    transition:opacity .2s,transform .2s;
+  }
+  .toast.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr}
+    .dog-card{grid-template-columns:1fr}
+  }
+  .big-budget-box{
+    background: linear-gradient(135deg, #FFE680, #FFD84D);
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+
+  .big-budget-box .amount{
+    font-size: 46px;
+    font-weight: 800;
+    color: var(--y-600);
+    margin: 8px 0 4px;
+  }
+
+  .big-budget-box .desc{
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-wrap container">
+    <div class="brand">
+      <div class="hamburger" id="openMenu" title="메뉴 열기"><i></i></div>
+      <span>노랑가계부</span>
+    </div>
+    <div id="headerGreeting" class="kpi">먼저 로그인 해주세요 🐣</div>
+    <div style="position:relative">
+      <div class="avatar" id="avatarBtn" title="계정"><span>👤</span></div>
+      <div class="dropdown hidden" id="avatarDropdown">
+        <ul>
+          <li id="logoutBtn">로그아웃</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- 사이드 시트 메뉴 -->
+<aside class="sheet" id="menuSheet" aria-hidden="true">
+  <div class="backdrop" data-close></div>
+  <div class="panel">
+    <div class="menu-group">
+      <div class="switch" title="KRW/AUD 전체 통화 전환 (프론트 표시용)">
+        <label for="currencyToggle">KRW ↔︎ AUD</label>
+        <input type="checkbox" id="currencyToggle" />
+      </div>
+      <div style="font-size:12px;display:none" class="muted" id="rateInfo">
+        * 실시간 환율: <span id="rateLabel">1 AUD = 900 KRW</span>
+      </div>
+    </div>
+    <div class="menu-group" aria-label="페이지 이동">
+      <button class="btn ghost" data-nav="page-main">메인</button>
+      <button class="btn ghost" data-nav="page-budget">예산</button>
+      <button class="btn ghost" data-nav="page-expense">지출내역</button>
+      <button class="btn ghost" data-nav="page-calendar">달력</button>
+      <button class="btn ghost" data-nav="page-stats">통계</button>
+      <button class="btn ghost" data-nav="page-strategy">소비전략</button>
+    </div>
+  </div>
+</aside>
+
+<main class="container">
+
+  <!-- 로그인/회원가입 -->
+  <section id="page-auth" class="page active">
+    <div class="auth-wrap card">
+      <div class="auth-logo">
+        <i></i><h1 style="margin:0;font-size:20px">노랑가계부</h1>
+      </div>
+      <p class="muted" style="margin-bottom:16px">
+        먼저 로그인 또는 회원가입을 진행해 주세요. <br>
+        모든 데이터는 서버(DB)에 저장됩니다.
+      </p>
+      <div class="auth-tabs">
+        <button class="btn" id="tab-login">로그인</button>
+        <button class="btn ghost" id="tab-signup">회원가입</button>
+      </div>
+
+      <!-- 로그인 -->
+      <form id="login-form">
+        <div class="row">
+          <div class="col">
+            <label>아이디
+              <input required class="input" id="login-username" placeholder="아이디"/>
+            </label>
+          </div>
+          <div class="col">
+            <label>비밀번호
+              <input required type="password" class="input" id="login-password" placeholder="비밀번호"/>
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+          <button class="btn" type="submit">로그인</button>
+        </div>
+      </form>
+
+	  <!-- 회원가입 -->
+	  <form id="register-form" class="hidden" style="margin-top:10px">
+
+	    <div class="row">
+	      <div class="col">
+	        <label>이름
+	          <input class="input" id="register-name" placeholder="이름"/>
+	        </label>
+	      </div>
+	      <div class="col">
+	        <label>나이 (선택)
+	          <input type="number" min="1" class="input" id="register-age" placeholder="예: 24"/>
+	        </label>
+	      </div>
+	    </div>
+
+	    <div class="row" style="margin-top:12px">
+	      <div class="col">
+	        <label>성별 (선택)
+	          <select class="select" id="register-gender">
+	            <option value="">선택 없음</option>
+	            <option value="FEMALE">여성</option>
+	            <option value="MALE">남성</option>
+	            <option value="OTHER">기타</option>
+	          </select>
+	        </label>
+	      </div>
+	      <div class="col">
+	        <label>아이디
+	          <input required class="input" id="register-username" placeholder="아이디"/>
+	        </label>
+	      </div>
+	    </div>
+
+	    <div class="row" style="margin-top:12px">
+	      <div class="col">
+	        <label>비밀번호
+	          <input required type="password" class="input" id="register-password" placeholder="비밀번호"/>
+	        </label>
+	      </div>
+	    </div>
+	    <!-- 🔥 추천인 칸 (깔끔하게 정리된 위치) -->
+	    <div class="row" style="margin-top:12px">
+	      <div class="col">
+	        <label>추천인 아이디 (선택)
+	          <input type="text" id="referrer" class="input" placeholder="추천인 아이디를 입력하세요 (선택)"/>
+	        </label>
+	      </div>
+	    </div>
+
+	    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+	      <button class="btn" type="submit">회원가입</button>
+	    </div>
+
+	  </form>
+	 </section>
+  <!-- 메인 -->
+  <section id="page-main" class="page">
+    <div class="grid">
+		<div class="big-budget-box tile" style="grid-column:1/3;text-align:center">
+
+        
+        <h2 style="margin:0;font-size:24px">
+          <span id="main-username">OOO</span>님의 남은 예산
+        </h2>
+        <div style="font-size:40px;font-weight:800;margin-top:4px" id="main-remaining-budget">0원</div>
+        <p class="muted" style="margin-top:6px">
+          총 예산 <span id="main-total-budget">0원</span> 중 <span id="main-expense-total">0원</span> 사용
+          (<span id="main-year-month">-</span>)
+        </p>
+        <div style="margin-top:10px;display:flex;justify-content:center">
+          <div class="pill">
+            기준 월:
+            <input type="month" id="global-year-month" class="input" style="width:130px;padding:4px 8px;font-size:12px" />
+            <button class="btn ghost" id="btn-set-month" type="button" style="padding:4px 8px;font-size:12px;margin-left:4px">적용</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tile">
+        <h3 style="margin-top:0">💰 이번 달 소비 현황</h3>
+        <canvas id="pieChart" width="600" height="260" aria-label="소비 파이차트"></canvas>
+        <div class="muted" style="font-size:12px;margin-top:6px">남은 예산 / 식비 / 카페 / 쇼핑 / 교통비 / 문화 / 생활 / 건강 / 뷰티</div>
+      </div>
+
+      <div class="card tile" id="dogCard">
+        <h3 style="margin-top:0">🐶 강아지 키우기</h3>
+        <div class="dog-card" style="grid-template-columns:1fr">
+          <div class="dog-left card" style="position:relative;height:220px">
+            <div class="dog-img" id="dogImg" aria-label="강아지"></div>
+            <div class="bone">🦴 <span id="boneCount">0</span></div>
+          </div>
+          <div class="dog-right card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div class="level-pill">
+                <strong id="dogTierName">거지강아지</strong> · <span id="dogLevel">Lv.1</span>
+              </div>
+              <div class="pill">🦴 <strong id="boneCount2">0</strong></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px">
+                <span>레벨 진행도</span>
+                <span class="muted" style="font-size:11px">(30/60/90/150/200)</span>
+              </div>
+              <div class="progress"><span id="dogProgress" style="width:0%"></span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+           
+              <span class="muted" id="checkInfo" style="font-size:12px"></span>
+            </div>
+            <div class="actions" style="margin-top:10px">
+              <button data-cost="1" data-action="pet">쓰다듬기 (🦴1)</button>
+              <button data-cost="3" data-action="play">놀아주기 (🦴3)</button>
+              <button data-cost="5" data-action="feed">밥주기 (🦴5)</button>
+            </div>
+            <div id="dogEmojis" style="min-height:40px;margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tile">
+        <h3 style="margin-top:0">🎁 오늘의 미션 & 보상</h3>
+        <button class="btn" style="width:100%;margin-bottom:8px" id="btn-watch-ad">
+          📺 광고 보기 (+🦴 1)
+        </button>
+        <button class="btn" style="width:100%;margin-bottom:8px" id="dailyCheck2">
+          ✅ 출석 체크 (+🦴 1)
+        </button>
+        <div style="padding:12px;background:var(--y-50);border-radius:8px;margin-top:8px">
+          <p class="muted" style="margin:0;font-size:13px">
+            👥 친구 초대 시 뼈다귀 10개 지급!<br>
+            내 추천인 코드: <strong id="referralCode">-</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="card tile">
+        <h3 style="margin-top:0">🎲 랜덤 박스 열기</h3>
+        <p class="muted" style="font-size:12px">하루 한 번, 박스를 선택해서 0~3개의 뼈다귀를 받으세요!</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px" id="randomBoxes">
+          <button class="box-btn" data-box="1">
+            <div style="font-size:48px">📦</div>
+          </button>
+          <button class="box-btn" data-box="2">
+            <div style="font-size:48px">📦</div>
+          </button>
+          <button class="box-btn" data-box="3">
+            <div style="font-size:48px">📦</div>
+          </button>
+        </div>
+        <p class="muted" style="font-size:11px;margin-top:8px" id="boxStatus">오늘 박스를 열 수 있어요!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 예산 페이지 -->
+  <section id="page-budget" class="page">
+    <div class="card tile">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <h2 style="margin:0">월별 예산 설정</h2>
+        <div class="pill">
+          기준 월:
+          <input type="month" id="budget-year-month" class="input" style="width:130px;padding:4px 8px;font-size:12px" />
+          <button class="btn ghost" id="btn-budget-set-month" type="button" style="padding:4px 8px;font-size:12px;margin-left:4px">적용</button>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:6px">
+        카테고리별 예산을 설정하면 메인과 통계 페이지에서 남은 예산 기준으로 보여줘요.
+      </p>
+
+      <div class="row" style="margin-top:12px">
+        <div class="col">
+          <label>총 예산
+            <input type="number" id="budget-total" class="input" placeholder="예: 500000" />
+          </label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <div class="col">
+          <label>식비
+            <input type="number" id="budget-food" class="input" placeholder="예: 200000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>카페/간식
+            <input type="number" id="budget-cafe" class="input" placeholder="예: 80000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>쇼핑
+            <input type="number" id="budget-shopping" class="input" placeholder="예: 100000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>교통비
+            <input type="number" id="budget-transport" class="input" placeholder="예: 60000" />
+          </label>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <div class="col">
+          <label>문화/여가
+            <input type="number" id="budget-culture" class="input" placeholder="예: 50000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>생활/기타
+            <input type="number" id="budget-life" class="input" placeholder="예: 50000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>건강/운동
+            <input type="number" id="budget-health" class="input" placeholder="예: 30000" />
+          </label>
+        </div>
+        <div class="col">
+          <label>뷰티/헤어
+            <input type="number" id="budget-beauty" class="input" placeholder="예: 40000" />
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+        <button class="btn ghost" id="btn-load-budget" type="button">불러오기</button>
+        <button class="btn ghost" id="btn-delete-budget" type="button">삭제</button>
+        <button class="btn" id="btn-save-budget" type="button">저장</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 지출 페이지 -->
+  <section id="page-expense" class="page">
+    <div class="row">
+      <div class="col">
+        <div class="card tile">
+          <h2>지출 입력</h2>
+          <div class="row">
+            <div class="col">
+              <label>날짜
+                <input type="date" id="expense-date" class="input"/>
+              </label>
+            </div>
+            <div class="col">
+              <label>금액 (원)
+                <input type="number" id="expense-amount" class="input" placeholder="예: 12000"/>
+              </label>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div class="col">
+              <label>카테고리
+                <select id="expense-category" class="select">
+                  <option value="식비">식비</option>
+                  <option value="카페/간식">카페/간식</option>
+                  <option value="쇼핑">쇼핑</option>
+                  <option value="교통비">교통비</option>
+                  <option value="문화/여가">문화/여가</option>
+                  <option value="생활/기타">생활/기타</option>
+                  <option value="건강/운동">건강/운동</option>
+                  <option value="뷰티/헤어">뷰티/헤어</option>
+                </select>
+              </label>
+            </div>
+            <div class="col">
+              <label>메모
+                <input id="expense-memo" class="input" placeholder="예: 스타벅스 아메리카노"/>
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+            <button class="btn" id="btn-save-expense" type="button">지출 저장</button>
+            <button class="btn ghost" id="btn-refresh-expense" type="button">현재 달 지출 새로고침</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card tile">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h2>달별 지출 내역</h2>
+            <input type="month" id="expense-list-month" class="input" style="max-width:150px"/>
+          </div>
+          <table style="margin-top:8px">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>카테고리</th>
+                <th>메모</th>
+                <th style="text-align:right;">금액</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="expense-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 달력 페이지 -->
+  <section id="page-calendar" class="page">
+    <div class="card tile">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <h2 style="margin:0">지출 달력</h2>
+        <div class="row" style="align-items:center;gap:6px">
+          <button class="btn ghost" id="prevMonth" type="button">◀︎</button>
+          <strong id="calTitle" style="min-width:150px;text-align:center"></strong>
+          <button class="btn ghost" id="nextMonth" type="button">▶︎</button>
+          <select id="jumpMonth" class="select" style="width:140px"></select>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:6px">
+        각 날짜별로 해당 월 지출 합계가 표시되고, 가장 많이 쓴 날 / 가장 적게 쓴 날이 강조됩니다.
+      </p>
+      <div class="calendar" id="calendarGrid"></div>
+    </div>
+  </section>
+
+  <!-- 통계 페이지 -->
+  <section id="page-stats" class="page">
+    <div class="card tile">
+      <h2>최근 12개월 월별 지출 (선 그래프)</h2>
+      <canvas id="lineChart" width="800" height="260"></canvas>
+    </div>
+    <div class="card tile" style="margin-top:16px">
+      <h2>카테고리별 지출 (현재 기준 월)</h2>
+      <div id="categoryBars" class="row"></div>
+    </div>
+  </section>
+
+  <!-- 강아지 페이지 (메인과 동일 강아지 설명용) -->
+  <section id="page-dog" class="page">
+    <div class="card tile">
+      <h2>🐶 강아지 키우기</h2>
+      <p class="muted">
+        메인 화면의 강아지 카드와 동일한 데이터가 사용됩니다.<br>
+        강아지는 메인 화면에서 관리해 주세요 🙂
+      </p>
+    </div>
+  </section>
+
+  <!-- 소비전략 페이지 -->
+  <section id="page-strategy" class="page">
+    <div class="card tile">
+      <h2>💡 AI 소비 전략 분석</h2>
+      <p class="muted">OpenAI가 당신의 소비 패턴을 분석하고 맞춤 전략을 제안해드려요.</p>
+      <button class="btn" id="btn-generate-strategy" style="margin-top:12px">
+        🤖 AI 전략 생성하기
+      </button>
+    </div>
+
+    <div class="card tile" style="margin-top:16px;display:none" id="strategy-result">
+      <h3>📊 이번 달 분석 결과</h3>
+      <div id="strategy-analysis" style="margin-top:12px">
+        <div style="padding:12px;background:var(--y-50);border-radius:8px;margin-bottom:8px">
+          <strong>총 지출:</strong> <span id="strategy-total">0원</span>
+        </div>
+        <div style="padding:12px;background:var(--y-50);border-radius:8px;margin-bottom:8px">
+          <strong>가장 많이 쓴 카테고리:</strong> <span id="strategy-top-category">-</span>
+        </div>
+        <div style="padding:12px;background:var(--y-50);border-radius:8px">
+          <strong>예산 대비 지출:</strong> <span id="strategy-budget-ratio">-%</span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:24px">💬 AI 추천 전략</h3>
+      <div id="ai-strategy-content" style="margin-top:12px;padding:16px;background:var(--y-50);border-radius:12px;border:1px solid var(--line);white-space:pre-line;line-height:1.8">
+        AI가 전략을 생성 중입니다...
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/*********************** 강아지 이미지 경로 ***********************/
+const dogImages = {
+  1: '/img/dog_lv1.png',
+  2: '/img/dog_lv2.png',
+  3: '/img/dog_lv3.png',
+  4: '/img/dog_lv4.png',
+  5: '/img/dog_lv5.png'
+};
+
+/* ===== 공통 유틸 ===== */
+const $  = (sel,root=document)=>root.querySelector(sel);
+const $$ = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
+let currentUser = null;            // {id, username, ...}
+let currentYearMonth = null;       // "YYYY-MM"
+let currentExpenses = [];          // 현재 기준 월 지출(백엔드)
+let currentBudgetTotal = 0;
+let rate = 900;                    // 표시용 환율 (프론트 전용)
+
+/* ===== 토스트 ===== */
+function showToast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+/* ===== 날짜 헬퍼 ===== */
+function getTodayYearMonth(){
+  return new Date().toISOString().slice(0,7); // YYYY-MM
+}
+function monthKey(d){
+  const dt = (typeof d==='string') ? new Date(d) : d;
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+}
+function parseYearMonth(ym){
+  if(!ym || ym.length!==7) return null;
+  const [y,m] = ym.split('-').map(n=>parseInt(n,10));
+  return {year:y, month:m};
+}
+function formatCurrency(v){
+  if(v==null || isNaN(v)) return '0원';
+  return Number(v).toLocaleString('ko-KR') + '원';
+}
+
+/* ===== 페이지 전환 ===== */
+const pages = ['page-auth','page-main','page-budget','page-expense','page-calendar','page-stats','page-dog','page-strategy'];
+function go(id){
+  pages.forEach(pid=>{
+    const el = document.getElementById(pid);
+    if(!el) return;
+    el.classList.toggle('active', pid===id);
+  });
+}
+
+/* ===== 헤더 / 아바타 / 메뉴 ===== */
+const menuSheet = $('#menuSheet');
+$('#openMenu').addEventListener('click',()=>{
+  menuSheet.classList.toggle('active');
+});
+$('#menuSheet').addEventListener('click',(e)=>{
+  if(e.target.matches('[data-close]')){
+    menuSheet.classList.remove('active');
+  }
+});
+$$('#menuSheet [data-nav]').forEach(btn=>{
+  btn.addEventListener('click',async (e)=>{
+    const target = e.currentTarget.getAttribute('data-nav');
+    menuSheet.classList.remove('active');
+    go(target);
+    if(target==='page-calendar') renderCalendar();
+    if(target==='page-stats'){ await drawLine(); renderCategoryBars(); }
+  });
+});
+
+$('#avatarBtn').addEventListener('click',()=>{
+  $('#avatarDropdown').classList.toggle('hidden');
+});
+window.addEventListener('click',(e)=>{
+  if(!$('#avatarBtn').contains(e.target) && !$('#avatarDropdown').contains(e.target)){
+    $('#avatarDropdown').classList.add('hidden');
+  }
+});
+
+/* ===== 환율 토글 & 표시 ===== */
+const currencyToggle = $('#currencyToggle');
+const rateInfoDiv    = $('#rateInfo');
+
+async function fetchExchangeRate(){
+  try {
+    console.log('환율 API 호출 시작...');
+    const response = await fetch('/api/exchange/rate/aud');
+    if (!response.ok) throw new Error('API 호출 실패');
+
+    const data = await response.json();
+    console.log('받은 데이터:', data);
+    rate = data.rate;
+    $('#rateLabel').textContent = `1 AUD = ${Math.round(rate)} KRW`;
+    showToast('실시간 환율을 불러왔습니다.');
+  } catch(err) {
+    console.error('환율 조회 실패:', err);
+    showToast('환율 정보를 가져올 수 없어요. 기본값(900)을 사용합니다.');
+    rate = 900;
+    $('#rateLabel').textContent = `1 AUD = ${rate} KRW`;
+  }
+}
+
+function fmtDisplay(amountKRW){
+  if(currencyToggle.checked){
+    const aud = amountKRW / rate;
+    return new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(aud);
+  }
+  return formatCurrency(amountKRW);
+}
+
+currencyToggle.addEventListener('change', async ()=>{
+  if(currencyToggle.checked){
+    await fetchExchangeRate();
+    rateInfoDiv.style.display = 'block';
+  } else {
+    rateInfoDiv.style.display = 'none';
+  }
+  updateMainView();
+  drawPie();
+  drawLine();
+  renderCategoryBars();
+  renderExpenseTable();
+});
+
+$('#rateLabel').addEventListener('click', async ()=>{
+  await fetchExchangeRate();
+  if(currencyToggle.checked){
+    updateMainView();
+    drawPie();
+    drawLine();
+    renderCategoryBars();
+    renderExpenseTable();
+  }
+});
+
+/* ===== 로그인 / 회원가입 ===== */
+const loginForm = $('#login-form');
+const registerForm = $('#register-form');
+
+$('#tab-login').addEventListener('click',()=>{
+  loginForm.classList.remove('hidden');
+  registerForm.classList.add('hidden');
+  $('#tab-login').classList.remove('ghost');
+  $('#tab-signup').classList.add('ghost');
+});
+$('#tab-signup').addEventListener('click',()=>{
+  registerForm.classList.remove('hidden');
+  loginForm.classList.add('hidden');
+  $('#tab-signup').classList.remove('ghost');
+  $('#tab-login').classList.add('ghost');
+});
+
+/* 회원가입 */
+registerForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  
+  const name = $('#register-name').value.trim();
+  const username = $('#register-username').value.trim();
+  const password = $('#register-password').value.trim();
+  const age = $('#register-age').value;
+  const gender = $('#register-gender').value;
+  const referrer = $('#referrer').value.trim(); // ⭐ 추천인 아이디 읽기
+
+  if(!username || !password){
+    showToast('아이디와 비밀번호는 필수입니다.');
+    return;
+  }
+
+  // 기본 payload
+  const payload = { username, password };
+
+  if(name)    payload.name = name;
+  if(age)     payload.age = Number(age);
+  if(gender)  payload.gender = gender;
+
+  // ⭐ 추천인 아이디가 입력된 경우만 payload 포함
+  if(referrer){
+    payload.referrer = referrer;
+  }
+
+  try{
+    const res = await fetch('/api/user/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    
+    if(!res.ok) throw new Error();
+
+    const user = await res.json();
+
+    showToast('회원가입이 완료되었습니다. 로그인해 주세요.');
+    
+    $('#tab-login').click();
+    $('#login-username').value = user.username || username;
+
+  }catch(err){
+    console.error(err);
+    showToast('회원가입 중 오류가 발생했어요.');
+  }
+});
+
+/* 로그인 */
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const username = $('#login-username').value.trim();
+  const password = $('#login-password').value.trim();
+  if(!username || !password){
+    showToast('아이디와 비밀번호를 입력해주세요.');
+    return;
+  }
+
+  try{
+    const res = await fetch('/api/user/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ username, password })
+    });
+    if(!res.ok) throw new Error();
+    const user = await res.json();
+    if(!user || !user.id) throw new Error();
+
+    currentUser = user;
+    $('#headerGreeting').textContent = `${user.name || user.username}님 환영해요!`;
+
+    currentYearMonth = getTodayYearMonth();
+    $('#global-year-month').value   = currentYearMonth;
+    $('#budget-year-month').value   = currentYearMonth;
+    $('#expense-list-month').value  = currentYearMonth;
+
+    loadDog();
+    updateDogUI();
+    await loadBudget();
+    await loadExpensesForCurrentMonth();
+    updateMainView();
+    go('page-main');
+  }catch(err){
+    console.error(err);
+    showToast('로그인에 실패했어요. 아이디/비밀번호를 확인해주세요.');
+  }
+});
+
+/* 로그아웃 */
+$('#logoutBtn').addEventListener('click',()=>{
+  currentUser = null;
+  currentYearMonth = null;
+  currentExpenses = [];
+  currentBudgetTotal = 0;
+  $('#headerGreeting').textContent = '먼저 로그인 해주세요 🐣';
+  $('#login-form').reset();
+  $('#register-form').reset();
+  go('page-auth');
+  $('#avatarDropdown').classList.add('hidden');
+  showToast('로그아웃 되었습니다.');
+});
+
+/* ===== 기준 월 설정 ===== */
+function syncYearMonthInputs(){
+  if(!currentYearMonth) return;
+  if($('#global-year-month'))  $('#global-year-month').value  = currentYearMonth;
+  if($('#budget-year-month'))  $('#budget-year-month').value  = currentYearMonth;
+  if($('#expense-list-month')) $('#expense-list-month').value = currentYearMonth;
+}
+
+$('#btn-set-month').addEventListener('click', async ()=>{
+  const ym = $('#global-year-month').value;
+  if(!ym){ showToast('기준 월을 선택해주세요.'); return; }
+  currentYearMonth = ym;
+  syncYearMonthInputs();
+  await loadBudget();
+  await loadExpensesForCurrentMonth();
+  updateMainView();
+  showToast('기준 월이 변경되었습니다.');
+});
+
+$('#btn-budget-set-month').addEventListener('click', async ()=>{
+  const ym = $('#budget-year-month').value;
+  if(!ym){ showToast('기준 월을 선택해주세요.'); return; }
+  currentYearMonth = ym;
+  syncYearMonthInputs();
+  await loadBudget();
+  await loadExpensesForCurrentMonth();
+  updateMainView();
+  showToast('기준 월이 변경되었습니다.');
+});
+
+/* ===== 예산 API 연동 ===== */
+async function loadBudget(){
+  if(!currentUser || !currentYearMonth) return;
+  const p = parseYearMonth(currentYearMonth);
+  if(!p) return;
+  const {year, month} = p;
+
+  try{
+	const res = await fetch(`/api/budget/${currentUser.id}/${year}/${month}`);
+
+	if (!res.ok) {
+	  clearBudgetInputs();
+	  currentBudgetTotal = 0;
+	  return;
+	}
+
+	let b = null;
+	try {
+	  b = await res.json(); // 응답이 비어있으면 여기서 try-catch로 막힘
+	} catch {
+	  b = null;
+	}
+
+	if (b) {
+	  $('#budget-total').value     = b.totalBudget    ?? 0;
+	  $('#budget-food').value      = b.foodBudget     ?? 0;
+	  $('#budget-cafe').value      = b.cafeBudget     ?? 0;
+	  $('#budget-shopping').value  = b.shoppingBudget ?? 0;
+	  $('#budget-transport').value = b.transportBudget?? 0;
+	  $('#budget-culture').value   = b.cultureBudget  ?? 0;
+	  $('#budget-life').value      = b.lifeBudget     ?? 0;
+	  $('#budget-health').value    = b.healthBudget   ?? 0;
+	  $('#budget-beauty').value    = b.beautyBudget   ?? 0;
+
+	  currentBudgetTotal = b.totalBudget ?? 0;
+	} else {
+	  clearBudgetInputs();
+	  currentBudgetTotal = 0;
+	}
+
+  }catch(err){
+    console.error(err);
+    showToast('예산 조회 중 오류가 발생했어요.');
+  }
+}
+function clearBudgetInputs(){
+  const ids = ['budget-total','budget-food','budget-cafe','budget-shopping','budget-transport',
+               'budget-culture','budget-life','budget-health','budget-beauty'];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+}
+$('#btn-save-budget').addEventListener('click', async ()=>{
+  if(!currentUser){ showToast('먼저 로그인 해주세요.'); return; }
+  if(!currentYearMonth){ showToast('기준 월을 먼저 선택해주세요.'); return; }
+
+  const body = {
+    yearMonth: currentYearMonth,
+    totalBudget:     Number($('#budget-total').value || 0),
+    foodBudget:      Number($('#budget-food').value || 0),
+    cafeBudget:      Number($('#budget-cafe').value || 0),
+    shoppingBudget:  Number($('#budget-shopping').value || 0),
+    transportBudget: Number($('#budget-transport').value || 0),
+    cultureBudget:   Number($('#budget-culture').value || 0),
+    lifeBudget:      Number($('#budget-life').value || 0),
+    healthBudget:    Number($('#budget-health').value || 0),
+    beautyBudget:    Number($('#budget-beauty').value || 0)
+  };
+
+  try{
+    const res = await fetch(`/api/budget/${currentUser.id}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error();
+    await res.json();
+    currentBudgetTotal = body.totalBudget;
+    updateMainView();
+    showToast('예산이 저장되었어요.');
+  }catch(err){
+    console.error(err);
+    showToast('예산 저장 중 오류가 발생했어요.');
+  }
+});
+$('#btn-load-budget').addEventListener('click', async ()=>{
+  await loadBudget();
+  updateMainView();
+  showToast('예산을 불러왔어요.');
+});
+$('#btn-delete-budget').addEventListener('click', async ()=>{
+  if(!currentUser || !currentYearMonth){
+    showToast('로그인과 기준 월 선택을 먼저 해주세요.');
+    return;
+  }
+  if(!confirm('해당 월의 예산을 삭제할까요?')) return;
+  try{
+    const res = await fetch(`/api/budget/${currentUser.id}/${currentYearMonth}`,{
+      method:'DELETE'
+    });
+    if(!res.ok && res.status!==204) throw new Error();
+    clearBudgetInputs();
+    currentBudgetTotal = 0;
+    updateMainView();
+    showToast('예산이 삭제되었어요.');
+  }catch(err){
+    console.error(err);
+    showToast('예산 삭제 중 오류가 발생했어요.');
+  }
+});
+
+/* ===== 지출 API 연동 ===== */
+async function loadExpensesForCurrentMonth(){
+  if(!currentUser || !currentYearMonth) return;
+  const p = parseYearMonth(currentYearMonth);
+  if(!p) return;
+  const {year, month} = p;
+
+  try{
+    const res = await fetch(`/api/expense/${currentUser.id}/${year}/${month}`);
+    if(!res.ok){
+      currentExpenses = [];
+    }else{
+      currentExpenses = await res.json();
+    }
+    renderExpenseTable();
+    updateMainView();
+    drawPie();
+    renderCalendar();
+    drawLine();
+    renderCategoryBars();
+  }catch(err){
+    console.error(err);
+    showToast('지출 조회 중 오류가 발생했어요.');
+  }
+}
+function renderExpenseTable(){
+  const tbody = $('#expense-table-body');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  const ym = $('#expense-list-month').value || currentYearMonth || getTodayYearMonth();
+  const rows = currentExpenses
+    .filter(e=>monthKey(e.spendDate)===ym)
+    .sort((a,b)=> (a.spendDate || '').localeCompare(b.spendDate || ''));
+
+  if(rows.length===0){
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.textContent = '등록된 지출이 없습니다.';
+    td.style.textAlign = 'center';
+    td.style.color = '#b2bec3';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  rows.forEach(exp=>{
+    const tr = document.createElement('tr');
+    const dateTd = document.createElement('td');
+    dateTd.textContent = exp.spendDate || '-';
+    const catTd = document.createElement('td');
+    catTd.textContent = exp.category || '-';
+    const memoTd = document.createElement('td');
+    memoTd.textContent = exp.memo || '';
+    const amtTd = document.createElement('td');
+    amtTd.style.textAlign = 'right';
+    amtTd.textContent = fmtDisplay(exp.amount || 0);
+    const actionTd = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.textContent = '삭제';
+    btn.className = 'btn ghost';
+    btn.style.fontSize = '11px';
+    btn.addEventListener('click',()=>deleteExpense(exp.id));
+    actionTd.appendChild(btn);
+
+    tr.appendChild(dateTd);
+    tr.appendChild(catTd);
+    tr.appendChild(memoTd);
+    tr.appendChild(amtTd);
+    tr.appendChild(actionTd);
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteExpense(id){
+  if(!id) return;
+  if(!confirm('이 지출 내역을 삭제할까요?')) return;
+  try{
+    const res = await fetch(`/api/expense/${id}`,{ method:'DELETE' });
+    if(!res.ok && res.status!==204) throw new Error();
+    showToast('지출 내역이 삭제되었어요.');
+    await loadExpensesForCurrentMonth();
+  }catch(err){
+    console.error(err);
+    showToast('지출 삭제 중 오류가 발생했어요.');
+  }
+}
+
+$('#expense-list-month').addEventListener('change',()=>{
+  const ym = $('#expense-list-month').value;
+  if(ym){
+    currentYearMonth = ym;
+    syncYearMonthInputs();
+    loadExpensesForCurrentMonth();
+  }
+});
+
+$('#btn-save-expense').addEventListener('click', async ()=>{
+  if(!currentUser){ showToast('먼저 로그인 해주세요.'); return; }
+  const date = $('#expense-date').value;
+  const amount = Number($('#expense-amount').value || 0);
+  const category = $('#expense-category').value;
+  const memo = $('#expense-memo').value.trim();
+  if(!date || !amount){
+    showToast('날짜와 금액은 필수입니다.');
+    return;
+  }
+  const ym = monthKey(date);
+  currentYearMonth = ym;
+  syncYearMonthInputs();
+
+  const payload = { spendDate: date, amount, category, memo };
+  try{
+    const res = await fetch(`/api/expense/${currentUser.id}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error();
+    await res.json();
+    $('#expense-amount').value = '';
+    $('#expense-memo').value = '';
+    showToast('지출이 저장되었어요.');
+    await loadExpensesForCurrentMonth();
+  }catch(err){
+    console.error(err);
+    showToast('지출 저장 중 오류가 발생했어요.');
+  }
+});
+$('#btn-refresh-expense').addEventListener('click', async ()=>{
+  await loadExpensesForCurrentMonth();
+  showToast('지출을 새로고침했어요.');
+});
+
+/* ===== 메인 KPI & 파이차트 ===== */
+const pieCanvas = $('#pieChart');
+const pctx = pieCanvas.getContext('2d');
+
+function updateMainView(){
+  if(!currentUser || !currentYearMonth) return;
+  $('#main-username').textContent = currentUser.name || currentUser.username || '사용자';
+  $('#main-year-month').textContent = currentYearMonth;
+  $('#main-total-budget').textContent = fmtDisplay(currentBudgetTotal);
+
+  const totalExpense = currentExpenses
+    .filter(e=>monthKey(e.spendDate)===currentYearMonth)
+    .reduce((sum,e)=>sum + (e.amount || 0),0);
+  $('#main-expense-total').textContent = fmtDisplay(totalExpense);
+  
+  const remaining = currentBudgetTotal - totalExpense;
+  $('#main-remaining-budget').textContent = fmtDisplay(remaining);
+  $('#main-remaining-budget').style.color = remaining < 0 ? 'var(--warn)' : 'var(--ink)';
+}
+
+/* 파이차트 (현재 월 카테고리별) */
+function sumByCategory(){
+  const map = {
+    '남은예산':0,'식비':0,'카페/간식':0,'쇼핑':0,'교통비':0,
+    '문화/여가':0,'생활/기타':0,'건강/운동':0,'뷰티/헤어':0
+  };
+  let totalSpent = 0;
+  currentExpenses.forEach(e=>{
+    if(!e.spendDate) return;
+    if(monthKey(e.spendDate)!==currentYearMonth) return;
+    const cat = e.category || '생활/기타';
+    if(cat in map) map[cat] += e.amount || 0;
+    totalSpent += e.amount || 0;
+  });
+  map['남은예산'] = Math.max(0, currentBudgetTotal - totalSpent);
+  return map;
+}
+function drawPie(){
+  const W = pieCanvas.width, H = pieCanvas.height;
+  pctx.clearRect(0,0,W,H);
+  if(!currentUser || !currentYearMonth) return;
+  const byCat = sumByCategory();
+  const entries = Object.entries(byCat).filter(([,v])=>v>0);
+  if(entries.length===0){
+    pctx.fillStyle='#999';
+    pctx.font='14px sans-serif';
+    pctx.fillText('지출 내역이 없습니다.', 20,40);
+    return;
+  }
+  const colors=["#FFF0A6","#FFD84D","#FFB74D","#A5D6A7","#90CAF9","#CE93D8","#F48FB1","#80CBC4","#B0BEC5"];
+  const total = entries.reduce((s,[,v])=>s+v,0);
+  const cx=W*0.55, cy=H*0.55, r=Math.min(W,H)/2-20;
+  let start=-Math.PI/2; let i=0;
+  entries.forEach(([label,val])=>{
+    const angle = (val/total)*Math.PI*2;
+    pctx.beginPath();
+    pctx.moveTo(cx,cy);
+    pctx.arc(cx,cy,r,start,start+angle);
+    pctx.closePath();
+    pctx.fillStyle = colors[i%colors.length];
+    pctx.fill();
+    start += angle;
+    i++;
+  });
+  pctx.font='12px sans-serif';
+  let y=20; i=0;
+  entries.forEach(([label,val])=>{
+    pctx.fillStyle = colors[i%colors.length];
+    pctx.fillRect(10,y-10,10,10);
+    pctx.fillStyle = '#5A4E00';
+    pctx.fillText(`${label} (${fmtDisplay(val)})`, 26,y);
+    y+=16;
+    i++;
+  });
+}
+
+/* ===== 달력 ===== */
+function renderCalendar(){
+  const grid = $('#calendarGrid');
+  const calTitle = $('#calTitle');
+  if(!grid || !calTitle) return;
+  grid.innerHTML='';
+  if(!currentYearMonth){
+    calTitle.textContent='-';
+    return;
+  }
+  const {year,month} = parseYearMonth(currentYearMonth);
+  calTitle.textContent = `${year}년 ${month}월`;
+
+  const jm = $('#jumpMonth');
+  const base = new Date(year, month-1, 1);
+  const options=[];
+  for(let i=-6;i<=6;i++){
+    const d=new Date(base.getFullYear(), base.getMonth()+i, 1);
+    options.push(monthKey(d));
+  }
+  jm.innerHTML = options.map(v=>`<option ${v===currentYearMonth?'selected':''}>${v}</option>`).join('');
+
+  const first = new Date(year,month-1,1);
+  const startDay = first.getDay();
+  const days = new Date(year,month,0).getDate();
+
+  const byDay = {};
+  currentExpenses.forEach(e=>{
+    if(!e.spendDate) return;
+    const d = new Date(e.spendDate);
+    if(d.getFullYear()===year && (d.getMonth()+1)===month){
+      const day = d.getDate();
+      byDay[day] = (byDay[day]||0) + (e.amount || 0);
+    }
+  });
+  const vals = Object.values(byDay);
+  const max = vals.length? Math.max(...vals):0;
+  const min = vals.length? Math.min(...vals):0;
+
+  for(let i=0;i<startDay;i++){
+    const ph=document.createElement('div');
+    ph.className='day';
+    grid.append(ph);
+  }
+
+  for(let d=1; d<=days; d++){
+    const el=document.createElement('div');
+    el.className='day';
+    const v = byDay[d]||0;
+    el.innerHTML = `
+      <div class="date">${d}</div>
+      <div class="badge" style="margin-top:auto">${v>0? '-'+fmtDisplay(v):'-'}</div>
+      <div class="muted" style="font-size:11px;margin-top:4px">
+        ${(v===max && v>0)?'<span class="badge tag-hi">최다 소비</span>':''}
+        ${(v===min && v>0)?'<span class="badge tag-lo">최소 소비</span>':''}
+      </div>
+    `;
+    grid.append(el);
+  }
+}
+$('#prevMonth').addEventListener('click', async ()=>{
+  if(!currentYearMonth) currentYearMonth = getTodayYearMonth();
+  const {year,month} = parseYearMonth(currentYearMonth);
+  const d = new Date(year,month-2,1);
+  currentYearMonth = monthKey(d);
+  syncYearMonthInputs();
+  await loadExpensesForCurrentMonth();
+});
+$('#nextMonth').addEventListener('click', async ()=>{
+  if(!currentYearMonth) currentYearMonth = getTodayYearMonth();
+  const {year,month} = parseYearMonth(currentYearMonth);
+  const d = new Date(year,month,1);
+  currentYearMonth = monthKey(d);
+  syncYearMonthInputs();
+  await loadExpensesForCurrentMonth();
+});
+$('#jumpMonth').addEventListener('change', async (e)=>{
+  const ym = e.target.value;
+  if(!ym) return;
+  currentYearMonth = ym;
+  syncYearMonthInputs();
+  await loadExpensesForCurrentMonth();
+});
+
+/* ===== 통계 (최근 12개월) ===== */
+const lineCanvas = $('#lineChart');
+const lctx = lineCanvas.getContext('2d');
+
+async function fetchExpensesFor12Months(){
+  if(!currentUser) return [];
+  const now = new Date();
+  const list = [];
+  for(let i=11;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const ym = monthKey(d);
+    const {year,month} = parseYearMonth(ym);
+    try{
+      const res = await fetch(`/api/expense/${currentUser.id}/${year}/${month}`);
+      if(!res.ok){ list.push({ym, sum:0}); }
+      else{
+        const arr = await res.json();
+        const sum = arr.reduce((s,e)=>s+(e.amount||0),0);
+        list.push({ym,sum});
+      }
+    }catch{
+      list.push({ym,sum:0});
+    }
+  }
+  return list;
+}
+async function drawLine(){
+  if(!currentUser) return;
+  const W=lineCanvas.width, H=lineCanvas.height;
+  lctx.clearRect(0,0,W,H);
+  const data = await fetchExpensesFor12Months();
+  if(!data.length) return;
+  const max = Math.max(1, ...data.map(d=>d.sum));
+  const pad=40;
+
+  lctx.strokeStyle='#E7DFA8';
+  lctx.lineWidth=1;
+  lctx.beginPath();
+  for(let i=0;i<=4;i++){
+    const y=pad + (H-2*pad)*i/4;
+    lctx.moveTo(pad,y);
+    lctx.lineTo(W-pad,y);
+  }
+  lctx.stroke();
+
+  lctx.strokeStyle='#CC9A00';
+  lctx.lineWidth=2;
+  lctx.beginPath();
+  data.forEach((d,i)=>{
+    const x = pad + (W-2*pad)*i/(data.length-1);
+    const y = H-pad - (H-2*pad)*(d.sum/max);
+    if(i===0) lctx.moveTo(x,y); else lctx.lineTo(x,y);
+  });
+  lctx.stroke();
+
+  lctx.fillStyle='#FFC93A';
+  data.forEach((d,i)=>{
+    const x = pad + (W-2*pad)*i/(data.length-1);
+    const y = H-pad - (H-2*pad)*(d.sum/max);
+    lctx.beginPath();
+    lctx.arc(x,y,3,0,Math.PI*2);
+    lctx.fill();
+  });
+
+  lctx.fillStyle='#5A4E00';
+  lctx.font='11px sans-serif';
+  data.forEach((d,i)=>{
+    const x = pad + (W-2*pad)*i/(data.length-1);
+    lctx.fillText(d.ym, x-22, H-10);
+  });
+}
+
+/* 카테고리 바 */
+function renderCategoryBars(){
+  const wrap = $('#categoryBars');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  if(!currentUser || !currentYearMonth) return;
+  const byCat = sumByCategory();
+  Object.entries(byCat).forEach(([cat,spent])=>{
+    const card = document.createElement('div');
+    card.className='col card';
+    card.style.padding='10px';
+    const totalCatBudget = (()=>{
+      switch(cat){
+        case '식비': return Number($('#budget-food').value || 0);
+        case '카페/간식': return Number($('#budget-cafe').value || 0);
+        case '쇼핑': return Number($('#budget-shopping').value || 0);
+        case '교통비': return Number($('#budget-transport').value || 0);
+        case '문화/여가': return Number($('#budget-culture').value || 0);
+        case '생활/기타': return Number($('#budget-life').value || 0);
+        case '건강/운동': return Number($('#budget-health').value || 0);
+        case '뷰티/헤어': return Number($('#budget-beauty').value || 0);
+        default: return 0;
+      }
+    })();
+    const pct = totalCatBudget ? Math.min(100, Math.round(spent/totalCatBudget*100)) : 0;
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong>${cat}</strong>
+        <span class="muted">${fmtDisplay(spent)} / ${fmtDisplay(totalCatBudget)}</span>
+      </div>
+      <div class="progress" style="margin-top:6px"><span style="width:${pct}%"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:4px">${pct}% 사용</div>
+    `;
+    wrap.append(card);
+  });
+}
+
+/* ===== 강아지(로컬 저장) ===== */
+const tiers = [
+  {name:'거지강아지', need:30},
+  {name:'서민강아지', need:60},
+  {name:'중산층강아지', need:90},
+  {name:'부자강아지', need:150},
+  {name:'개부자강아지', need:200}
+];
+let dogState = { bones:0, level:1, xp:0, lastCheck:'' };
+
+function loadDog(){
+  if(!currentUser) return;
+  const raw = localStorage.getItem('dog:'+currentUser.username);
+  if(raw){
+    try{ dogState = JSON.parse(raw); }catch(e){}
+  }else{
+    dogState = { bones:0, level:1, xp:0, lastCheck:'' };
+  }
+
+  const today = new Date().toISOString().slice(0,10);
+  const lastBox = localStorage.getItem('lastBox:'+currentUser.username);
+  if(lastBox===today){
+    $$('.box-btn').forEach(b=>b.disabled=true);
+    $('#boxStatus').textContent = '내일 다시 도전하세요!';
+  }else{
+    $$('.box-btn').forEach(b=>b.disabled=false);
+    $('#boxStatus').textContent = '오늘 박스를 열 수 있어요!';
+  }
+
+  updateReferralCode();
+}
+function saveDog(){
+  if(!currentUser) return;
+  localStorage.setItem('dog:'+currentUser.username, JSON.stringify(dogState));
+}
+function updateDogUI(){
+  $('#boneCount').textContent  = dogState.bones;
+  $('#boneCount2').textContent = dogState.bones;
+  const t = tiers[dogState.level-1] || tiers[0];
+  $('#dogTierName').textContent = t.name;
+  $('#dogLevel').textContent    = 'Lv.'+dogState.level;
+  const pct = Math.min(100, Math.round(dogState.xp / t.need * 100));
+  $('#dogProgress').style.width = pct + '%';
+
+  const imgPath = dogImages[dogState.level] || dogImages[1];
+  const dogImgEl = document.getElementById('dogImg');
+  dogImgEl.style.backgroundImage = `url('${imgPath}')`;
+  dogImgEl.style.backgroundSize = 'cover';
+  dogImgEl.style.backgroundPosition = 'center';
+}
+function addEmojis(type){
+  const box = $('#dogEmojis');
+  box.innerHTML='';
+  const map={pet:['🤚','❤️'], play:['⚽️','❤️'], feed:['🍖','❤️']};
+  (map[type]||['❤️']).forEach((em,i)=>{
+    const span=document.createElement('span');
+    span.textContent=em;
+    span.style.fontSize='28px';
+    span.style.display='inline-block';
+    span.style.opacity='0';
+    span.style.transition='transform .5s, opacity .5s';
+    span.style.marginRight='4px';
+    box.append(span);
+    setTimeout(()=>{ span.style.opacity='1'; span.style.transform='translateY(-6px)'; }, i*100);
+  });
+}
+$('#dailyCheck2').addEventListener('click',()=>{
+  if(!currentUser){ showToast('로그인 후 사용 가능합니다.'); return; }
+  const today = new Date().toISOString().slice(0,10);
+  if(dogState.lastCheck===today){
+    showToast('오늘은 이미 출석했어요!');
+    return;
+  }
+  dogState.lastCheck=today;
+  dogState.bones+=1;
+  $('#checkInfo').textContent='오늘 출석 완료! (+🦴1)';
+  saveDog();
+  updateDogUI();
+});
+$$('.actions button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(!currentUser){ showToast('로그인 후 사용 가능합니다.'); return; }
+    const cost = Number(btn.dataset.cost || 0);
+    const action = btn.dataset.action;
+    if(dogState.bones < cost){
+      showToast('뼈다귀가 부족해요!');
+      return;
+    }
+    dogState.bones -= cost;
+    dogState.xp    += cost;
+    const t = tiers[dogState.level-1];
+    if(dogState.xp >= t.need && dogState.level < 5){
+      dogState.level++;
+      dogState.xp = 0;
+      alert('레벨 업! ' + tiers[dogState.level-1].name + '가 되었어요!');
+    }
+    addEmojis(action);
+    saveDog();
+    updateDogUI();
+  });
+});
+
+/* ===== 랜덤 박스 ===== */
+
+$$('.box-btn').forEach(btn=>{
+  btn.addEventListener('click',(e)=>{
+    if(!currentUser){ 
+      showToast('로그인 후 사용 가능합니다.'); 
+      return; 
+    }
+
+    // username이 없을 경우 name으로 대체 → undefined 방지
+    const userKey = currentUser.username || currentUser.name;
+
+    const today = new Date().toISOString().slice(0,10);
+    const lastBox = localStorage.getItem('lastBox:'+ userKey);
+
+    if(lastBox === today){
+      showToast('오늘은 이미 박스를 열었어요!');
+      return;
+    }
+
+    const reward = Math.floor(Math.random() * 4); // 0~3개
+    const boxEl = e.currentTarget;
+
+    boxEl.innerHTML = `
+      <div style="font-size:48px">🦴</div>
+      <div style="font-size:14px;margin-top:4px">+${reward}</div>
+    `;
+
+    dogState.bones += reward;
+
+    // 🔥 undefined 키 저장 방지
+    localStorage.setItem('lastBox:'+ userKey, today);
+
+    $$('.box-btn').forEach(b=>b.disabled=true);
+    $('#boxStatus').textContent = '내일 다시 도전하세요!';
+
+    saveDog();
+    updateDogUI();
+
+    showToast(`🎉 뼈다귀 ${reward}개 획득!`);
+  });
+});
+
+/* ===== 광고 보기 ===== */
+$('#btn-watch-ad').addEventListener('click',()=>{
+  if(!currentUser){ showToast('로그인 후 사용 가능합니다.'); return; }
+  showToast('광고 기능은 추후 업데이트 예정입니다.');
+});
+
+/* ===== 출석 체크 (두 번째 버튼은 첫 번째 재사용) ===== */
+$('#dailyCheck2').addEventListener('click',()=>{
+  $('#dailyCheck').click();
+});
+
+/* ===== 추천인 코드 ===== */
+function updateReferralCode(){
+  if(!currentUser) return;
+  $('#referralCode').textContent = 'REF' + currentUser.id;
+}
+
+/* ===== AI 소비전략 ===== */
+$('#btn-generate-strategy').addEventListener('click', async () => {
+  if (!currentUser) {
+    showToast('먼저 로그인해주세요.');
+    return;
+  }
+  if (!currentYearMonth) {
+    showToast('기준 월을 먼저 설정해주세요.');
+    return;
+  }
+
+  const btn = $('#btn-generate-strategy');
+  const resultSection = $('#strategy-result');
+  const contentDiv = $('#ai-strategy-content');
+  
+  btn.disabled = true;
+  btn.textContent = '⏳ AI가 분석 중입니다...';
+  resultSection.style.display = 'block';
+  contentDiv.textContent = '🤖 Hugging Face AI가 당신의 소비 패턴을 분석하고 있어요...\n\n첫 호출은 모델 로딩으로 20-30초 걸릴 수 있습니다.\n잠시만 기다려주세요!';
+
+  try {
+    updateStrategyAnalysis();
+    const [year, month] = currentYearMonth.split('-').map(Number);
+    const response = await fetch(
+      `/api/strategy/${currentUser.id}/${year}/${month}?budget=${currentBudgetTotal}`,
+      { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+    );
+    if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
+    const data = await response.json();
+    contentDiv.textContent = data.strategy || '전략을 생성할 수 없습니다.';
+    showToast('✅ AI 전략이 생성되었습니다!');
+  } catch (error) {
+    console.error('AI 전략 생성 오류:', error);
+    showToast('❌ AI 전략 생성에 실패했습니다.');
+    contentDiv.textContent = 
+      '⚠️ AI 전략 생성에 실패했습니다.\n\n' +
+      '✅ 지출 내역을 꾸준히 기록하세요.\n\n' +
+      '💡 예산을 설정하고 관리해보세요.\n\n' +
+      '⚠️ 고정 지출과 변동 지출을 구분하면 좋아요.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 AI 전략 재생성하기';
+  }
+});
+
+function updateStrategyAnalysis() {
+  if (!currentUser || !currentYearMonth) return;
+
+  const total = currentExpenses
+    .filter(e => monthKey(e.spendDate) === currentYearMonth)
+    .reduce((sum, e) => sum + (e.amount || 0), 0);
+  $('#strategy-total').textContent = fmtDisplay(total);
+
+  const byCat = {};
+  currentExpenses.forEach(e => {
+    if (monthKey(e.spendDate) === currentYearMonth) {
+      const cat = e.category || '기타';
+      byCat[cat] = (byCat[cat] || 0) + (e.amount || 0);
+    }
+  });
+
+  let maxCat = '-';
+  let maxAmt = 0;
+  Object.entries(byCat).forEach(([cat, amt]) => {
+    if (amt > maxAmt) {
+      maxCat = cat;
+      maxAmt = amt;
+    }
+  });
+  
+  if (maxCat !== '-') {
+    $('#strategy-top-category').textContent = maxCat + ' (' + fmtDisplay(maxAmt) + ')';
+  } else {
+    $('#strategy-top-category').textContent = '아직 지출 내역이 없어요';
+  }
+
+  const ratio = currentBudgetTotal ? Math.round((total / currentBudgetTotal) * 100) : 0;
+  $('#strategy-budget-ratio').textContent = ratio + '%';
+}
+
+/* ===== 초기화 ===== */
+window.addEventListener('load',()=>{
+  go('page-auth');
+  $('#rateLabel').textContent = `1 AUD = ${rate} KRW`;
+});
+</script>
+</body>
+</html>
