@@ -52,4 +52,30 @@ public class UserService {
         }
         return null;
     }
+    // ⭐ 출석체크 보상 (+1)
+    public User giveAttendanceReward(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setBones(user.getBones() + 1);
+        return userRepository.save(user);
+    }
+
+    // ⭐ 광고 보기 보상 (+1)
+    public User giveAdReward(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        user.setBones(user.getBones() + 1);
+        return userRepository.save(user);
+    }
+    
+    // ⭐ 랜덤박스 보상 (0~3 랜덤)
+    public int giveRandomBoxReward(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+    
+        int reward = (int)(Math.random() * 4);  // 0~3
+    
+        user.setBones(user.getBones() + reward);
+        userRepository.save(user);
+    
+        return reward;  // 프론트에게 받은 뼈다귀 개수 알려주기
+    }
+
 }
