@@ -1,11 +1,18 @@
 package com.moneymate.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pets")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Pet {
 
     @Id
@@ -28,7 +35,4 @@ public class Pet {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    // === getter / setter ===
-    // (롬복 쓰면 @Getter @Setter @NoArgsConstructor @Builder 등 붙여도 OK)
 }
