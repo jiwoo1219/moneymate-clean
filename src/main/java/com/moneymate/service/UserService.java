@@ -16,9 +16,6 @@ public class UserService {
     // ⭐ 회원가입 + 추천인 보상 로직
     public User register(User user) {
 
-        // 기본 bones 초기화
-        user.setBones(0);
-
         String ref = user.getReferrer();
 
         // 추천인 아이디가 존재한다면 처리
