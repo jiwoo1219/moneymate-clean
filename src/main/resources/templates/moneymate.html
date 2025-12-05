@@ -1524,7 +1524,7 @@ function renderCategoryBars(){
   });
 }
 
-/* ===== 강아지(로컬 저장) ===== */
+/* ===== 강아지(서버 저장용 기본 상태) ===== */
 const tiers = [
   {name:'거지강아지', need:30},
   {name:'서민강아지', need:60},
@@ -1532,33 +1532,67 @@ const tiers = [
   {name:'부자강아지', need:150},
   {name:'개부자강아지', need:200}
 ];
-let dogState = { bones:0, level:1, xp:0, lastCheck:'' };
 
-function loadDog(){
+// 🔥 LocalStorage 구조 제거 → 서버 DB에서 값을 받아오는 구조로 변경
+let dogState = { 
+  bones:0, 
+  level:1, 
+  xp:0, 
+  lastCheckDate:null, 
+  lastBoxDate:null 
+};
+
+/* ===== 강아지 상태 서버에서 불러오기 ===== */
+async function loadDog(){
   if(!currentUser) return;
-  const raw = localStorage.getItem('dog:'+currentUser.username);
-  if(raw){
-    try{ dogState = JSON.parse(raw); }catch(e){}
-  }else{
-    dogState = { bones:0, level:1, xp:0, lastCheck:'' };
+
+  try {
+    const res = await fetch(`/api/pet/${currentUser.id}`);
+    if (!res.ok) throw new Error('pet load failed');
+
+    const pet = await res.json();
+
+    dogState = {
+      bones: pet.bones ?? 0,
+      level: pet.level ?? 1,
+      xp: pet.xp ?? 0,
+      lastCheckDate: pet.lastCheckDate ?? null,
+      lastBoxDate: pet.lastBoxDate ?? null,
+    };
+
+  } catch (e) {
+    console.error('pet load failed', e);
+    dogState = { bones:0, level:1, xp:0, lastCheckDate:null, lastBoxDate:null };
   }
 
+  updateDogUI();
+
+  // 랜덤박스 버튼 상태 갱신
   const today = new Date().toISOString().slice(0,10);
-  const lastBox = localStorage.getItem('lastBox:'+currentUser.username);
-  if(lastBox===today){
-    $$('.box-btn').forEach(b=>b.disabled=true);
+  if (dogState.lastBoxDate === today) {
+    $$('.box-btn').forEach(b => b.disabled = true);
     $('#boxStatus').textContent = '내일 다시 도전하세요!';
-  }else{
-    $$('.box-btn').forEach(b=>b.disabled=false);
+  } else {
+    $$('.box-btn').forEach(b => b.disabled = false);
     $('#boxStatus').textContent = '오늘 박스를 열 수 있어요!';
   }
-
-  updateReferralCode();
 }
-function saveDog(){
+	
+/* ===== 강아지 상태 서버 저장 ===== */
+async function saveDog(){
   if(!currentUser) return;
-  localStorage.setItem('dog:'+currentUser.username, JSON.stringify(dogState));
+
+  try {
+    await fetch(`/api/pet/${currentUser.id}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(dogState)
+    });
+  } catch(e){
+    console.error('pet save failed', e);
+  }
 }
+
 function updateDogUI(){
   $('#boneCount').textContent  = dogState.bones;
   $('#boneCount2').textContent = dogState.bones;
@@ -1590,19 +1624,35 @@ function addEmojis(type){
     setTimeout(()=>{ span.style.opacity='1'; span.style.transform='translateY(-6px)'; }, i*100);
   });
 }
-$('#dailyCheck2').addEventListener('click',()=>{
-  if(!currentUser){ showToast('로그인 후 사용 가능합니다.'); return; }
-  const today = new Date().toISOString().slice(0,10);
-  if(dogState.lastCheck===today){
-    showToast('오늘은 이미 출석했어요!');
+/* ===== 출석 체크 서버 버전 ===== */
+$('#dailyCheck2').addEventListener('click', async ()=>{
+  if(!currentUser){
+    showToast('로그인 후 사용 가능합니다.');
     return;
   }
-  dogState.lastCheck=today;
-  dogState.bones+=1;
-  $('#checkInfo').textContent='오늘 출석 완료! (+🦴1)';
-  saveDog();
-  updateDogUI();
+
+  try {
+    const res = await fetch(`/api/pet/${currentUser.id}/attendance`, { method:'POST' });
+
+    if(res.status === 409){
+      showToast('오늘은 이미 출석했어요!');
+      return;
+    }
+
+    const pet = await res.json();
+
+    dogState.bones = pet.bones;
+    dogState.lastCheckDate = pet.lastCheckDate;
+
+    $('#checkInfo').textContent = '오늘 출석 완료! (+🦴1)';
+    updateDogUI();
+
+  } catch(e){
+    console.error(e);
+    showToast('출석 처리 중 오류가 발생했어요.');
+  }
 });
+
 $$('.actions button').forEach(btn=>{
   btn.addEventListener('click',()=>{
     if(!currentUser){ showToast('로그인 후 사용 가능합니다.'); return; }
@@ -1626,48 +1676,50 @@ $$('.actions button').forEach(btn=>{
   });
 });
 
-/* ===== 랜덤 박스 ===== */
-
+/* ===== 랜덤 박스 서버 버전 ===== */
 $$('.box-btn').forEach(btn=>{
-  btn.addEventListener('click',(e)=>{
-    if(!currentUser){ 
-      showToast('로그인 후 사용 가능합니다.'); 
-      return; 
-    }
-
-    // username이 없을 경우 name으로 대체 → undefined 방지
-    const userKey = currentUser.username || currentUser.name;
-
-    const today = new Date().toISOString().slice(0,10);
-    const lastBox = localStorage.getItem('lastBox:'+ userKey);
-
-    if(lastBox === today){
-      showToast('오늘은 이미 박스를 열었어요!');
+  btn.addEventListener('click', async (e)=>{
+    if(!currentUser){
+      showToast('로그인 후 사용 가능합니다.');
       return;
     }
 
-    const reward = Math.floor(Math.random() * 4); // 0~3개
-    const boxEl = e.currentTarget;
+    try{
+      const res = await fetch(`/api/pet/${currentUser.id}/random-box`, {
+        method:'POST'
+      });
 
-    boxEl.innerHTML = `
-      <div style="font-size:48px">🦴</div>
-      <div style="font-size:14px;margin-top:4px">+${reward}</div>
-    `;
+      if(res.status === 409){
+        showToast('오늘은 이미 박스를 열었어요!');
+        return;
+      }
 
-    dogState.bones += reward;
+      const data = await res.json();  // { reward, pet }
+      const reward = data.reward;
+      const pet = data.pet;
 
-    // 🔥 undefined 키 저장 방지
-    localStorage.setItem('lastBox:'+ userKey, today);
+      dogState.bones = pet.bones;
+      dogState.lastBoxDate = pet.lastBoxDate;
 
-    $$('.box-btn').forEach(b=>b.disabled=true);
-    $('#boxStatus').textContent = '내일 다시 도전하세요!';
+      const boxEl = e.currentTarget;
+      boxEl.innerHTML = `
+        <div style="font-size:48px">🦴</div>
+        <div style="font-size:14px;margin-top:4px">+${reward}</div>
+      `;
 
-    saveDog();
-    updateDogUI();
+      $$('.box-btn').forEach(b=>b.disabled=true);
+      $('#boxStatus').textContent = '내일 다시 도전하세요!';
 
-    showToast(`🎉 뼈다귀 ${reward}개 획득!`);
+      updateDogUI();
+      showToast(`🎉 뼈다귀 ${reward}개 획득!`);
+
+    } catch(err){
+      console.error(err);
+      showToast('랜덤 박스 처리 중 오류가 발생했어요.');
+    }
   });
 });
+
 
 /* ===== 광고 보기 ===== */
 $('#btn-watch-ad').addEventListener('click',()=>{
@@ -1675,10 +1727,6 @@ $('#btn-watch-ad').addEventListener('click',()=>{
   showToast('광고 기능은 추후 업데이트 예정입니다.');
 });
 
-/* ===== 출석 체크 (두 번째 버튼은 첫 번째 재사용) ===== */
-$('#dailyCheck2').addEventListener('click',()=>{
-  $('#dailyCheck').click();
-});
 
 /* ===== 추천인 코드 ===== */
 function updateReferralCode(){
