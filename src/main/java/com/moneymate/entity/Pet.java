@@ -2,35 +2,33 @@ package com.moneymate.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pets")
 public class Pet {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String species;
-    private LocalDate birthDate;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    // Getter/Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    private int level = 1;
+    private int xp = 0;
+    private int bones = 0;
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    @Column(name = "last_check_date")
+    private LocalDate lastCheckDate;
 
-    public String getSpecies() { return species; }
-    public void setSpecies(String species) { this.species = species; }
+    @Column(name = "last_box_date")
+    private LocalDate lastBoxDate;
 
-    public LocalDate getBirthDate() { return birthDate; }
-    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    // === getter / setter ===
+    // (롬복 쓰면 @Getter @Setter @NoArgsConstructor @Builder 등 붙여도 OK)
 }
