@@ -21,20 +21,24 @@ public class PetService {
         this.userRepository = userRepository;
     }
 
-    /** 유저의 Pet 없으면 기본값으로 생성해서 돌려줌 */
     public Pet getOrCreatePet(Long userId) {
-        return petRepository.findByUserId(userId)
-                .orElseGet(() -> {
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-                    Pet pet = new Pet();
-                    pet.setUser(user);
-                    pet.setLevel(1);
-                    pet.setXp(0);
-                    pet.setBones(0);
-                    return petRepository.save(pet);
-                });
+    return petRepository.findByUserId(userId)
+            .orElseGet(() -> {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                Pet pet = new Pet();
+                pet.setUser(user);
+                pet.setLevel(1);
+                pet.setXp(0);
+                pet.setBones(0);
+                pet.setLastCheckDate(null);
+                pet.setLastBoxDate(null);
+
+                return petRepository.save(pet);
+            });
     }
+
 
     public Pet updatePetState(Long userId, PetStateDto dto) {
         Pet pet = getOrCreatePet(userId);
