@@ -23,4 +23,22 @@ public class UserRestController {
     public User login(@RequestBody User loginUser) {
         return userService.login(loginUser.getUsername(), loginUser.getPassword());
     }
+    // ⭐ 출석 체크 보상
+    @PostMapping("/{userId}/attendance")
+    public User attendance(@PathVariable Long userId) {
+        return userService.giveAttendanceReward(userId);
+    }
+    
+    // ⭐ 광고 보기 보상
+    @PostMapping("/{userId}/ad")
+    public User adReward(@PathVariable Long userId) {
+        return userService.giveAdReward(userId);
+    }
+    
+    // ⭐ 랜덤박스 보상
+    @PostMapping("/{userId}/random-box")
+    public int randomBox(@PathVariable Long userId) {
+        return userService.giveRandomBoxReward(userId);
+    }
+
 }
