@@ -65,20 +65,23 @@ public class PetService {
         return petRepository.save(pet);  // ← 반드시 필요
     }
 
-    /** 랜덤박스 */
+       /** 랜덤박스 */
     public Pet applyRandomBox(Long userId, int reward) {
         Pet pet = getOrCreatePet(userId);
+    
         LocalDate today = LocalDate.now();
-
-        if (today.equals(pet.getLastBoxDate())) {
-            return null;
+        LocalDate last = pet.getLastBoxDate();
+    
+        if (last != null && last.equals(today)) {
+            return null;  // 오늘 이미 함
         }
-
+    
         pet.setLastBoxDate(today);
         pet.setBones(pet.getBones() + reward);
-
-        return petRepository.save(pet); // ← 매우 중요
+    
+        return petRepository.save(pet);
     }
+
 
     /** 관리자용 / 추천인 보상 */
     public Pet addBones(Long userId, int amount) {
