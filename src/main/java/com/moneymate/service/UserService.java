@@ -22,21 +22,25 @@ public class UserService {
 
         String ref = user.getReferrer();
 
-        // 회원 먼저 저장 (ID가 있어야 pet 생성 가능)
+        // 1) 회원 먼저 저장 (User ID 필요)
         User savedUser = userRepository.save(user);
 
-        // 추천인 처리
+        // 2) 추천인 로직 처리
         if (ref != null && !ref.isBlank()) {
 
             User refUser = userRepository.findByUsername(ref);
 
-            if (refUser != null) {
-                // 추천인과 신규회원 모두 보상 (pet의 bones 증가)
+            // 추천인 존재 + 자기 자신이 아닌 경우만 처리
+            if (refUser != null && !refUser.getId().equals(savedUser.getId())) {
+
+                // 각각 Pet에 보상 10개 추가
                 petService.addBones(refUser.getId(), 10);
                 petService.addBones(savedUser.getId(), 10);
+
             } else {
-                // 잘못된 추천인 → 초기화
+                // 잘못된 추천인 → referrer 초기화 + DB 저장
                 savedUser.setReferrer(null);
+                userRepository.save(savedUser);
             }
         }
 
