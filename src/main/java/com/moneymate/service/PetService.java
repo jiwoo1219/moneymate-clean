@@ -22,24 +22,24 @@ public class PetService {
     }
 
     public Pet getOrCreatePet(Long userId) {
-    return petRepository.findByUserId(userId)
-            .orElseGet(() -> {
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return petRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                Pet pet = new Pet();
-                pet.setUser(user);
-                pet.setLevel(1);
-                pet.setXp(0);
-                pet.setBones(0);
-                pet.setLastCheckDate(null);
-                pet.setLastBoxDate(null);
+                    Pet pet = new Pet();
+                    pet.setUser(user);
+                    pet.setLevel(1);
+                    pet.setXp(0);
+                    pet.setBones(0);
+                    pet.setLastCheckDate(null);
+                    pet.setLastBoxDate(null);
 
-                return petRepository.save(pet);
-            });
+                    return petRepository.save(pet);
+                });
     }
 
-
+    /** 펫 상태 저장 */
     public Pet updatePetState(Long userId, PetStateDto dto) {
         Pet pet = getOrCreatePet(userId);
         pet.setLevel(dto.getLevel());
@@ -47,37 +47,44 @@ public class PetService {
         pet.setBones(dto.getBones());
         pet.setLastCheckDate(dto.getLastCheckDate());
         pet.setLastBoxDate(dto.getLastBoxDate());
-        return pet;
+        return petRepository.save(pet);   // ← 추가됨
     }
 
-    /** 출석 체크: 오늘 이미 했으면 null 반환, 아니면 +1 후 Pet 반환 */
+    /** 출석 체크 */
     public Pet attend(Long userId) {
         Pet pet = getOrCreatePet(userId);
         LocalDate today = LocalDate.now();
+
         if (today.equals(pet.getLastCheckDate())) {
-            return null; // 이미 출석
+            return null;
         }
+
         pet.setLastCheckDate(today);
         pet.setBones(pet.getBones() + 1);
-        return pet;
+
+        return petRepository.save(pet);  // ← 반드시 필요
     }
 
-    /** 랜덤박스 보상 (보상 계산은 프론트에서 해도 되고, 여기서 해도 됨) */
+    /** 랜덤박스 */
     public Pet applyRandomBox(Long userId, int reward) {
         Pet pet = getOrCreatePet(userId);
         LocalDate today = LocalDate.now();
+
         if (today.equals(pet.getLastBoxDate())) {
-            return null; // 이미 열었음
+            return null;
         }
+
         pet.setLastBoxDate(today);
         pet.setBones(pet.getBones() + reward);
-        return pet;
+
+        return petRepository.save(pet); // ← 매우 중요
     }
 
-    /** 테스트용: 강아지 뼈다귀 마음대로 넣기 */
+    /** 관리자용 / 추천인 보상 */
     public Pet addBones(Long userId, int amount) {
         Pet pet = getOrCreatePet(userId);
         pet.setBones(pet.getBones() + amount);
-        return pet;
+        return petRepository.save(pet); // ← 반드시 필요
     }
 }
+
