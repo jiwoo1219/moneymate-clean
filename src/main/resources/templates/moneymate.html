@@ -1542,7 +1542,6 @@ let dogState = {
   lastBoxDate:null 
 };
 
-/* ===== 강아지 상태 서버에서 불러오기 ===== */
 async function loadDog(){
   if(!currentUser) return;
 
@@ -1553,9 +1552,9 @@ async function loadDog(){
     const pet = await res.json();
 
     dogState = {
-      bones: pet.bones ?? 0,
-      level: pet.level ?? 1,
-      xp: pet.xp ?? 0,
+      bones: Number(pet.bones ?? 0),
+      level: Number(pet.level ?? 1),
+      xp: Number(pet.xp ?? 0),
       lastCheckDate: pet.lastCheckDate ?? null,
       lastBoxDate: pet.lastBoxDate ?? null,
     };
@@ -1577,6 +1576,7 @@ async function loadDog(){
     $('#boxStatus').textContent = '오늘 박스를 열 수 있어요!';
   }
 }
+
 	
 /* ===== 강아지 상태 서버 저장 ===== */
 async function saveDog(){
@@ -1594,20 +1594,26 @@ async function saveDog(){
 }
 
 function updateDogUI(){
-  $('#boneCount').textContent  = dogState.bones;
-  $('#boneCount2').textContent = dogState.bones;
-  const t = tiers[dogState.level-1] || tiers[0];
+  const bones = Number(dogState.bones ?? 0);
+
+  $('#boneCount').textContent  = bones;
+  $('#boneCount2').textContent = bones;
+
+  const t = tiers[dogState.level - 1] || tiers[0];
+
   $('#dogTierName').textContent = t.name;
-  $('#dogLevel').textContent    = 'Lv.'+dogState.level;
-  const pct = Math.min(100, Math.round(dogState.xp / t.need * 100));
-  $('#dogProgress').style.width = pct + '%';
+  $('#dogLevel').textContent    = `Lv.${dogState.level}`;
+
+  const progress = Math.min(100, Math.round((dogState.xp / t.need) * 100));
+  $('#dogProgress').style.width = progress + '%';
 
   const imgPath = dogImages[dogState.level] || dogImages[1];
-  const dogImgEl = document.getElementById('dogImg');
+  const dogImgEl = $('#dogImg');
   dogImgEl.style.backgroundImage = `url('${imgPath}')`;
   dogImgEl.style.backgroundSize = 'cover';
   dogImgEl.style.backgroundPosition = 'center';
 }
+
 function addEmojis(type){
   const box = $('#dogEmojis');
   box.innerHTML='';
