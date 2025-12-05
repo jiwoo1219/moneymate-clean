@@ -18,68 +18,51 @@ public class UserService {
     }
 
     /**
-     * 회원가입 + 추천인 보상 로직
+     * 회원가입 + 추천인 보상 로직 (username 기반)
      *
-     * - 추천코드 형식: "REF{userId}"
-     *   예) "REF3" → id = 3인 유저가 추천인
-     * - 추천코드가 잘못되었거나, 자기 자신을 추천한 경우 referrer 를 null 로 저장
-     * - 유효한 추천인인 경우:
-     *      - 추천인 Pet 뼈다귀 +10
-     *      - 신규 가입자 Pet 뼈다귀 +10
+     * - 추천인은 기존의 "REF{id}" 방식이 아니라
+     *   "사용자 아이디(username)" 그대로 받는 방식으로 변경됨.
+     *
+     * - 추천인(username)이 존재하고, 자기 자신이 아닐 경우:
+     *     → 추천인 Pet 뼈다귀 +10
+     *     → 신규 가입자 Pet 뼈다귀 +10
+     *
+     * - 추천인이 없다면 그대로 가입 처리
+     * - 추천인이 잘못된 username이면 referrer=null로 저장
      */
     public User register(User user) {
 
-        // 회원가입 시 입력된 추천코드 (그냥 raw 값)
+        // 입력된 추천인 username (예: "hwangjiwoo")
         String ref = user.getReferrer();
 
-        // 1) 회원 먼저 저장 (User ID 필요)
+        // 1) 회원부터 저장 (ID 필요)
         User savedUser = userRepository.save(user);
 
-        // 2) 추천인 로직 처리 (referrer 없으면 바로 반환)
+        // 추천인 미입력 시 바로 반환
         if (ref == null || ref.isBlank()) {
             return savedUser;
         }
 
-        ref = ref.trim();
+        ref = ref.trim(); // 스페이스 제거
 
-        // 추천코드 형식이 "REF"로 시작하지 않으면 잘못된 코드로 처리
-        if (!ref.startsWith("REF")) {
-            savedUser.setReferrer(null);
-            userRepository.save(savedUser);
+        // 추천인 username 조회
+        User refUser = userRepository.findByUsername(ref);
+
+        // 추천인이 존재하고, 자기 자신이 아닌 경우만 보상
+        if (refUser != null && !refUser.getId().equals(savedUser.getId())) {
+
+            // 추천인에게 보상
+            petService.addBones(refUser.getId(), 10);
+
+            // 신규 가입자에게도 보상
+            petService.addBones(savedUser.getId(), 10);
+
             return savedUser;
         }
 
-        try {
-            // "REF" 이후 숫자 부분만 잘라서 userId 로 사용
-            Long refId = Long.parseLong(ref.substring(3));
-
-            // 자기 자신 추천 방지
-            if (refId.equals(savedUser.getId())) {
-                savedUser.setReferrer(null);
-                userRepository.save(savedUser);
-                return savedUser;
-            }
-
-            // 실제 추천인 조회
-            User refUser = userRepository.findById(refId).orElse(null);
-
-            if (refUser != null) {
-                // ✅ 유효한 추천인인 경우: 둘 다 뼈다귀 10개 보상
-                petService.addBones(refUser.getId(), 10);
-                petService.addBones(savedUser.getId(), 10);
-                // referrer 문자열(REF번호)은 그대로 두어도 되고,
-                // 나중에 통계용으로 사용 가능
-            } else {
-                // 추천인 ID가 존재하지 않으면 잘못된 코드이므로 referrer 제거
-                savedUser.setReferrer(null);
-                userRepository.save(savedUser);
-            }
-
-        } catch (NumberFormatException e) {
-            // "REF" 뒤에 숫자가 아닌 값이 들어온 경우 → 잘못된 코드로 처리
-            savedUser.setReferrer(null);
-            userRepository.save(savedUser);
-        }
+        // 추천인이 존재하지 않거나 자기 자신 추천 → 무효 처리
+        savedUser.setReferrer(null);
+        userRepository.save(savedUser);
 
         return savedUser;
     }
