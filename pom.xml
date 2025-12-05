@@ -54,6 +54,14 @@
     		<artifactId>postgresql</artifactId>
     		<version>42.7.4</version>
 		</dependency>
+		<!-- Lombok -->
+		<dependency>
+		    <groupId>org.projectlombok</groupId>
+		    <artifactId>lombok</artifactId>
+		    <version>1.18.30</version>
+		    <scope>provided</scope>
+		</dependency>
+
 
 	</dependencies>
 
@@ -63,6 +71,22 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-compiler-plugin</artifactId>
+	            <version>3.10.1</version>
+	            <configuration>
+	                <annotationProcessorPaths>
+	                    <path>
+	                        <groupId>org.projectlombok</groupId>
+	                        <artifactId>lombok</artifactId>
+	                        <version>1.18.30</version>
+	                    </path>
+	                </annotationProcessorPaths>
+	                <source>17</source>
+	                <target>17</target>
+	            </configuration>
+	        </plugin>
 		</plugins>
 	</build>
 
