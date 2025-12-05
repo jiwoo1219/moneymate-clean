@@ -1707,7 +1707,8 @@ $$('.box-btn').forEach(btn=>{
       dogState.bones = pet.bones;
       dogState.lastBoxDate = pet.lastBoxDate;
 
-      const boxEl = e.currentTarget;
+      const boxEl = e.target.closest('.box-btn');
+
       boxEl.innerHTML = `
         <div style="font-size:48px">🦴</div>
         <div style="font-size:14px;margin-top:4px">+${reward}</div>
