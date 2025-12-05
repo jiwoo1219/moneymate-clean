@@ -1,17 +1,14 @@
 package com.moneymate.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.moneymate.entity.Pet;
+import com.moneymate.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface PetRepository extends JpaRepository<Pet, Long> {
 
-    // owner(User)의 id로 조회
-	List<Pet> findByUserId(Long userId);
+    Optional<Pet> findByUser(User user);
 
-    // 이름 검색(선택)
-	List<Pet> findByUserIdAndNameContaining(Long userId, String name);
-
+    Optional<Pet> findByUserId(Long userId);
 }
-
