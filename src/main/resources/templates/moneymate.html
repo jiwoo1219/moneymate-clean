@@ -423,40 +423,92 @@
         <canvas id="pieChart" width="600" height="260" aria-label="소비 파이차트"></canvas>
         <div class="muted" style="font-size:12px;margin-top:6px">남은 예산 / 식비 / 카페 / 쇼핑 / 교통비 / 문화 / 생활 / 건강 / 뷰티</div>
       </div>
-<div class="petname-box" style="
-    display:flex;
-    align-items:center;
-    gap:6px;
-    margin:12px 0 4px;
-">
-  <input 
-    id="petNameInput" 
-    class="input" 
-    placeholder="강아지 이름"
-    style="
-      flex:1;
-      padding:8px 10px;
-      border-radius:12px;
-      border:2px solid var(--line);
-      background:var(--y-50);
-      font-size:14px;
-    "
-  />
+<div class="card tile" id="dogCard">
+  <h3 style="margin-top:0">🐶 강아지 키우기</h3>
 
-  <button 
-    id="savePetNameBtn" 
-    class="btn" 
-    style="
-      padding:8px 12px;
-      border-radius:12px;
-      background:var(--y-300);
-      font-size:13px;
-      white-space:nowrap;
-    "
-  >
-    저장 🐾
-  </button>
-</div>
+  <div class="dog-card" style="grid-template-columns:1fr">
+
+    <!-- 🔹 왼쪽: 강아지 이미지 -->
+    <div class="dog-left card" style="position:relative;height:220px">
+      <div class="dog-img" id="dogImg" aria-label="강아지"></div>
+      <div class="bone">🦴 <span id="boneCount">0</span></div>
+    </div>
+
+    <!-- 🔹 오른쪽: 정보 / 레벨 / 진행도 / 이름 / 버튼 -->
+    <div class="dog-right card">
+
+      <!-- 레벨 표시 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div class="level-pill">
+          <strong id="dogTierName">거지강아지</strong> · 
+          <span id="dogLevel">Lv.1</span>
+        </div>
+        <div class="pill">🦴 <strong id="boneCount2">0</strong></div>
+      </div>
+
+      <!-- 진행도 -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px">
+          <span>레벨 진행도</span>
+          <span class="muted" style="font-size:11px">(30/60/90/150/200)</span>
+        </div>
+        <div class="progress"><span id="dogProgress" style="width:0%"></span></div>
+      </div>
+
+      <!-- 체크 정보 -->
+      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+        <span class="muted" id="checkInfo" style="font-size:12px"></span>
+      </div>
+
+      <!-- ⭐ 강아지 이름 입력 UI (예쁜 버전) -->
+      <div class="petname-box" style="
+          display:flex;
+          align-items:center;
+          gap:6px;
+          margin:12px 0 4px;
+      ">
+        <input 
+          id="petNameInput" 
+          class="input" 
+          placeholder="강아지 이름"
+          style="
+            flex:1;
+            padding:8px 10px;
+            border-radius:12px;
+            border:2px solid var(--line);
+            background:var(--y-50);
+            font-size:14px;
+          "
+        />
+
+        <button 
+          id="savePetNameBtn" 
+          class="btn" 
+          style="
+            padding:8px 12px;
+            border-radius:12px;
+            background:var(--y-300);
+            font-size:13px;
+            white-space:nowrap;
+          "
+        >
+          저장 🐾
+        </button>
+      </div>
+
+      <!-- 행동 버튼 -->
+      <div class="actions" style="margin-top:10px">
+        <button data-cost="1" data-action="pet">쓰다듬기 (🦴1)</button>
+        <button data-cost="3" data-action="play">놀아주기 (🦴3)</button>
+        <button data-cost="5" data-action="feed">밥주기 (🦴5)</button>
+      </div>
+
+      <div id="dogEmojis" style="min-height:40px;margin-top:10px"></div>
+
+    </div><!-- dog-right 끝 -->
+  </div><!-- dog-card 끝 -->
+</div><!-- dogCard 끝 -->
+
 
            
               <span class="muted" id="checkInfo" style="font-size:12px"></span>
