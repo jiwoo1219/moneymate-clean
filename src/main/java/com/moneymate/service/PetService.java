@@ -102,14 +102,14 @@ public boolean isOverBudget(Long userId, String yearMonth) {
     int year = Integer.parseInt(parts[0]);
     int month = Integer.parseInt(parts[1]);
 
-    // ⭐ 예산 조회 (없으면 0)
+    // 예산 조회
     int budget = budgetRepository
             .findByUser_IdAndYearAndMonth(userId, year, month)
             .map(Budget::getTotalBudget)
             .orElse(0);
 
-    // ⭐ 지출 합계 조회 (지출 없으면 null → 0으로 치환)
-    Integer spentValue = expenseRepository.sumMonthlyExpense(userId, yearMonth);
+    // ⭐ sumMonthlyExpense는 (userId, year, month) 이렇게 써야 함!
+    Integer spentValue = expenseRepository.sumMonthlyExpense(userId, year, month);
     int spent = (spentValue != null) ? spentValue : 0;
 
     return spent > budget;
