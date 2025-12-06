@@ -2,6 +2,7 @@ package com.moneymate.service;
 
 import com.moneymate.entity.Pet;
 import com.moneymate.entity.User;
+import com.moneymate.entity.Budget;
 import com.moneymate.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,18 +95,24 @@ public class PetService {
         return petRepository.save(pet);
     }
 
-    /** 예산 초과 여부 계산 */
-    public boolean isOverBudget(Long userId, String yearMonth) {
+   public boolean isOverBudget(Long userId, String yearMonth) {
 
-        int budget = budgetRepository
-                .findByUserIdAndYearMonth(userId, yearMonth)
-                .map(Budget::getTotalBudget)
-                .orElse(0);
+    // yearMonth = "2025-12" 같은 형식 → year, month로 분리
+    String[] parts = yearMonth.split("-");
+    int year = Integer.parseInt(parts[0]);
+    int month = Integer.parseInt(parts[1]);
 
-        int spent = expenseRepository
-                .sumMonthlyExpense(userId, yearMonth);
-                
+    // 예산 조회
+    int budget = budgetRepository
+            .findByUser_IdAndYearAndMonth(userId, year, month)
+            .map(Budget::getTotalBudget)
+            .orElse(0);
 
-        return spent > budget;
-    }
+    // 지출 조회
+    int spent = expenseRepository.sumMonthlyExpense(userId, yearMonth);
+
+    // 초과 여부 반환
+    return spent > budget;
+}
+
 }
