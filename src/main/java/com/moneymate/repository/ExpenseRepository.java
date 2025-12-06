@@ -16,7 +16,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     List<Expense> findByUser_IdAndCategory(Long userId, String category);
 
-    // 특정 월 지출 목록
+    // 특정 년월 지출 목록
     @Query("SELECT e FROM Expense e WHERE e.user.id = :userId " +
            "AND YEAR(e.spendDate) = :year AND MONTH(e.spendDate) = :month")
     List<Expense> findByUserIdAndYearMonth(
@@ -25,7 +25,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             @Param("month") int month
     );
 
-    // ⭐ 특정 월 총 지출 금액 (DB 전부 호환)
+    // ⭐ 특정 년월 총 지출 금액
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
            "WHERE e.user.id = :userId " +
            "AND YEAR(e.spendDate) = :year " +
