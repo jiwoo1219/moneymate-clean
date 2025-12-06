@@ -95,22 +95,24 @@ public class PetService {
         return petRepository.save(pet);
     }
 
-  public boolean isOverBudget(Long userId, String yearMonth) {
-
+public boolean isOverBudget(Long userId, String yearMonth) {
     String[] parts = yearMonth.split("-");
     int year = Integer.parseInt(parts[0]);
     int month = Integer.parseInt(parts[1]);
 
+    // 예산 가져오기
     int budget = budgetRepository
             .findByUser_IdAndYearAndMonth(userId, year, month)
             .map(Budget::getTotalBudget)
             .orElse(0);
 
-    Integer spentObj = expenseRepository.sumMonthlyExpense(userId, yearMonth);
-    int spent = (spentObj == null ? 0 : spentObj);
+    // 지출합이 null이면 0으로 대체
+    Integer spent = expenseRepository.sumMonthlyExpense(userId, yearMonth);
+    int spentSafe = (spent == null ? 0 : spent);
 
-    return spent > budget;
+    return spentSafe > budget;
 }
+
 
 
 }
