@@ -96,22 +96,21 @@ public class PetService {
     }
 
 public boolean isOverBudget(Long userId, String yearMonth) {
+
     String[] parts = yearMonth.split("-");
     int year = Integer.parseInt(parts[0]);
     int month = Integer.parseInt(parts[1]);
 
-    // 예산 가져오기
     int budget = budgetRepository
             .findByUser_IdAndYearAndMonth(userId, year, month)
             .map(Budget::getTotalBudget)
             .orElse(0);
 
-    // 지출합이 null이면 0으로 대체
-    Integer spent = expenseRepository.sumMonthlyExpense(userId, yearMonth);
-    int spentSafe = (spent == null ? 0 : spent);
+    int spent = expenseRepository.sumMonthlyExpense(userId, yearMonth);
 
-    return spentSafe > budget;
+    return spent > budget;
 }
+
 
 
 
