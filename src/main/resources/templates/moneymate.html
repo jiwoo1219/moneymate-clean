@@ -1640,43 +1640,65 @@ async function saveDog(){
 async function updateDogUI() {
   if (!currentUser || !currentYearMonth) return;
 
-  // 예산 초과 여부
-  const overRes = await fetch(`/api/pet/${currentUser.id}/over-budget/${currentYearMonth}`);
-  const overData = await overRes.json();
-  dogState.isOverBudget = overData.overBudget;
+  // 1) 예산 초과 여부 안전하게 호출
+  let overBudget = false;
+  try {
+    const overRes = await fetch(`/api/pet/${currentUser.id}/over-budget/${currentYearMonth}`);
+    if (overRes.ok) {
+      const overData = await overRes.json().catch(() => null);
+      if (overData && typeof overData.overBudget === 'boolean') {
+        overBudget = overData.overBudget;
+      }
+    } else {
+      console.warn('over-budget API 에러 상태:', overRes.status);
+    }
+  } catch (e) {
+    console.error('over-budget 호출 실패:', e);
+  }
+  dogState.isOverBudget = overBudget;
 
-  // 이름 표시
-  $('#petNameDisplay').textContent = dogState.petName || "강아지";
-  $('#petNameInput').value = dogState.petName || "";
+  // 2) 이름 표시
+  const nameDisplay = $('#petNameDisplay');
+  if (nameDisplay) {
+    nameDisplay.textContent = dogState.petName || "강아지";
+  }
+  const nameInput = $('#petNameInput');
+  if (nameInput) {
+    nameInput.value = dogState.petName || "";
+  }
 
-  // 뼈다귀 표시
-  $('#boneCount').textContent = dogState.bones;
-  $('#boneCount2').textContent = dogState.bones;
+  // 3) 뼈다귀 표시 (boneCount2는 없을 수 있으니 방어코드)
+  const bone1 = $('#boneCount');
+  if (bone1) bone1.textContent = dogState.bones;
 
-  // 티어·레벨 표시
+  const bone2 = $('#boneCount2');
+  if (bone2) bone2.textContent = dogState.bones; // 없어도 에러 안 나게 if 처리
+
+  // 4) 티어 / 레벨 표시
   const t = tiers[dogState.level - 1] || tiers[0];
-  $('#dogTierName').textContent = t.name;
-  $('#dogLevel').textContent = `Lv.${dogState.level}`;
+  const tierNameEl = $('#dogTierName');
+  if (tierNameEl) tierNameEl.textContent = t.name;
 
-  // 진행도
-  const progress = Math.min(100, Math.round((dogState.xp / t.need) * 100));
-  $('#dogProgress').style.width = progress + "%";
+  const levelEl = $('#dogLevel');
+  if (levelEl) levelEl.textContent = `Lv.${dogState.level}`;
 
-  // 이미지 결정
+  // 5) 진행도 바
+  const progressEl = $('#dogProgress');
+  if (progressEl) {
+    const progress = Math.min(100, Math.round((dogState.xp / t.need) * 100));
+    progressEl.style.width = progress + "%";
+  }
+
+  // 6) 이미지 설정
   const dogImgEl = $('#dogImg');
-
-  if (dogState.isOverBudget) {
-    dogImgEl.style.backgroundImage = `url('/img/Cdog${dogState.level}.png')`;
-  } else {
-    dogImgEl.style.backgroundImage = `url('/img/dog_lv${dogState.level}.png')`;
+  if (dogImgEl) {
+    const imgPath = dogState.isOverBudget
+      ? `/img/Cdog${dogState.level}.png`
+      : `/img/dog_lv${dogState.level}.png`;
+    dogImgEl.style.backgroundImage = `url('${imgPath}')`;
   }
 }
 
-	// ✏️ 이름 수정 버튼 클릭 → 입력칸 열기
-$('#editPetNameBtn').addEventListener('click', () => {
-  $('#petNameEditBox').style.display = 'flex';
-  $('#petNameInput').value = dogState.petName || "";
-});
 
 
 function addEmojis(type){
@@ -1715,7 +1737,11 @@ $('#dailyCheck2').addEventListener('click', async ()=>{
     dogState.bones = pet.bones;
     dogState.lastCheckDate = pet.lastCheckDate;
 
-    $('#checkInfo').textContent = '오늘 출석 완료! (+🦴1)';
+    const info = $('#checkInfo');
+if (info) {
+  info.textContent = '오늘 출석 완료! (+🦴1)';
+}
+
     updateDogUI();
 
   } catch(e){
