@@ -446,6 +446,11 @@
               <div class="progress"><span id="dogProgress" style="width:0%"></span></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+				<div style="margin-top:10px">
+  <input id="petNameInput" class="input" placeholder="강아지 이름 입력" />
+  <button id="savePetNameBtn" class="btn" style="margin-top:4px">이름 저장</button>
+</div>
+
            
               <span class="muted" id="checkInfo" style="font-size:12px"></span>
             </div>
@@ -1593,26 +1598,69 @@ async function saveDog(){
   }
 }
 
-function updateDogUI(){
-  const bones = Number(dogState.bones ?? 0);
+async function updateDogUI() {
+  if (!currentUser || !currentYearMonth) return;
 
-  $('#boneCount').textContent  = bones;
-  $('#boneCount2').textContent = bones;
+  // 1) 예산 초과 여부 체크
+  const overRes = await fetch(`/api/pet/${currentUser.id}/over-budget/${currentYearMonth}`);
+  const overData = await overRes.json();
+  const over = overData.overBudget;
 
-  const t = tiers[dogState.level - 1] || tiers[0];
+  // 2) 강아지 이름 입력칸 채우기 (petName이 있을 경우)
+  if (dogState.petName) {
+    $('#petNameInput').value = dogState.petName;
+  }
 
+  // 3) 뼈다귀 표시
+  $('#boneCount').textContent = dogState.bones;
+  $('#boneCount2').textContent = dogState.bones;
+
+  // 4) tier 정보 표시
+  const t = tiers[dogState.level - 1];
   $('#dogTierName').textContent = t.name;
-  $('#dogLevel').textContent    = `Lv.${dogState.level}`;
+  $('#dogLevel').textContent = `Lv.${dogState.level}`;
 
+  // 5) 진행률 표시
   const progress = Math.min(100, Math.round((dogState.xp / t.need) * 100));
-  $('#dogProgress').style.width = progress + '%';
+  $('#dogProgress').style.width = progress + "%";
 
-  const imgPath = dogImages[dogState.level] || dogImages[1];
+  // 6) 강아지 이미지 결정
   const dogImgEl = $('#dogImg');
-  dogImgEl.style.backgroundImage = `url('${imgPath}')`;
+
+  // 예산 초과라면 무조건 우는 강아지 이미지
+  if (over) {
+    dogImgEl.style.backgroundImage = `url('/img/Cdog${dogState.level}.png')`;
+  } 
+  // 예산 초과 아니면 일반 이미지
+  else {
+    const imgPath = dogImages[dogState.level] || dogImages[1];
+    dogImgEl.style.backgroundImage = `url('${imgPath}')`;
+  }
+
   dogImgEl.style.backgroundSize = 'cover';
   dogImgEl.style.backgroundPosition = 'center';
 }
+
+$('#savePetNameBtn').addEventListener('click', async () => {
+  if (!currentUser) return;
+
+  const newName = $('#petNameInput').value.trim();
+  if (!newName) {
+    showToast("이름을 입력하세요!");
+    return;
+  }
+
+  const res = await fetch(`/api/pet/${currentUser.id}/name`, {
+    method: "POST",
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ petName: newName })
+  });
+
+  const pet = await res.json();
+  dogState.petName = pet.petName;
+  showToast("강아지 이름이 저장됐어요!");
+  updateDogUI();
+});
 
 function addEmojis(type){
   const box = $('#dogEmojis');
