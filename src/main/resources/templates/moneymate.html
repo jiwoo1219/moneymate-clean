@@ -423,32 +423,39 @@
         <canvas id="pieChart" width="600" height="260" aria-label="소비 파이차트"></canvas>
         <div class="muted" style="font-size:12px;margin-top:6px">남은 예산 / 식비 / 카페 / 쇼핑 / 교통비 / 문화 / 생활 / 건강 / 뷰티</div>
       </div>
+<div class="petname-box" style="
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:12px 0 4px;
+">
+  <input 
+    id="petNameInput" 
+    class="input" 
+    placeholder="강아지 이름"
+    style="
+      flex:1;
+      padding:8px 10px;
+      border-radius:12px;
+      border:2px solid var(--line);
+      background:var(--y-50);
+      font-size:14px;
+    "
+  />
 
-      <div class="card tile" id="dogCard">
-        <h3 style="margin-top:0">🐶 강아지 키우기</h3>
-        <div class="dog-card" style="grid-template-columns:1fr">
-          <div class="dog-left card" style="position:relative;height:220px">
-            <div class="dog-img" id="dogImg" aria-label="강아지"></div>
-            <div class="bone">🦴 <span id="boneCount">0</span></div>
-          </div>
-          <div class="dog-right card">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <div class="level-pill">
-                <strong id="dogTierName">거지강아지</strong> · <span id="dogLevel">Lv.1</span>
-              </div>
-              <div class="pill">🦴 <strong id="boneCount2">0</strong></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px">
-                <span>레벨 진행도</span>
-                <span class="muted" style="font-size:11px">(30/60/90/150/200)</span>
-              </div>
-              <div class="progress"><span id="dogProgress" style="width:0%"></span></div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-				<div style="margin-top:10px">
-  <input id="petNameInput" class="input" placeholder="강아지 이름 입력" />
-  <button id="savePetNameBtn" class="btn" style="margin-top:4px">이름 저장</button>
+  <button 
+    id="savePetNameBtn" 
+    class="btn" 
+    style="
+      padding:8px 12px;
+      border-radius:12px;
+      background:var(--y-300);
+      font-size:13px;
+      white-space:nowrap;
+    "
+  >
+    저장 🐾
+  </button>
 </div>
 
            
@@ -474,9 +481,13 @@
         </button>
         <div style="padding:12px;background:var(--y-50);border-radius:8px;margin-top:8px">
           <p class="muted" style="margin:0;font-size:13px">
-            👥 친구 초대 시 뼈다귀 10개 지급!<br>
-            내 추천인 코드: <strong id="referralCode">-</strong>
-          </p>
+  👥 친구 초대 시 뼈다귀 10개 지급!
+</p>
+
+<p id="referralWrapper" class="muted" style="margin:0;font-size:13px; display:none;">
+  내 추천인 코드: <strong id="referralCode">-</strong>
+</p>
+
         </div>
       </div>
 
