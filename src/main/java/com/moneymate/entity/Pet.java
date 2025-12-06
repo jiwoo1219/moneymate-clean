@@ -4,12 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 
 @Entity
 @Table(name = "pets")
@@ -30,6 +28,9 @@ public class Pet {
     private int level = 1;
     private int xp = 0;
     private int bones = 0;
+
+    @Column(name = "pet_name")
+    private String petName = "강아지";
 
     @Column(name = "last_check_date")
     private LocalDate lastCheckDate;
