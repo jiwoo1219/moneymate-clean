@@ -104,7 +104,7 @@ public class PetService {
 
         int spent = expenseRepository
                 .sumMonthlyExpense(userId, yearMonth)
-                .orElse(0);
+                
 
         return spent > budget;
     }
