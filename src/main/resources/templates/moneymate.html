@@ -1546,7 +1546,6 @@ let dogState = {
   lastCheckDate:null, 
   lastBoxDate:null 
 };
-
 async function loadDog(){
   if(!currentUser) return;
 
@@ -1562,16 +1561,25 @@ async function loadDog(){
       xp: Number(pet.xp ?? 0),
       lastCheckDate: pet.lastCheckDate ?? null,
       lastBoxDate: pet.lastBoxDate ?? null,
+      petName: pet.petName ?? ""     // ⭐⭐ 여기 추가!
     };
 
   } catch (e) {
     console.error('pet load failed', e);
-    dogState = { bones:0, level:1, xp:0, lastCheckDate:null, lastBoxDate:null };
+
+    dogState = { 
+      bones:0, 
+      level:1, 
+      xp:0, 
+      lastCheckDate:null, 
+      lastBoxDate:null,
+      petName: ""                    // ⭐ 기본값 추가
+    };
   }
 
   updateDogUI();
 
-  // 랜덤박스 버튼 상태 갱신
+  // 랜덤박스 버튼 상태 갱신 (이 부분은 그대로)
   const today = new Date().toISOString().slice(0,10);
   if (dogState.lastBoxDate === today) {
     $$('.box-btn').forEach(b => b.disabled = true);
@@ -1581,6 +1589,8 @@ async function loadDog(){
     $('#boxStatus').textContent = '오늘 박스를 열 수 있어요!';
   }
 }
+
+
 
 	
 /* ===== 강아지 상태 서버 저장 ===== */
