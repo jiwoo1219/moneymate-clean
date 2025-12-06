@@ -423,6 +423,7 @@
         <canvas id="pieChart" width="600" height="260" aria-label="소비 파이차트"></canvas>
         <div class="muted" style="font-size:12px;margin-top:6px">남은 예산 / 식비 / 카페 / 쇼핑 / 교통비 / 문화 / 생활 / 건강 / 뷰티</div>
       </div>
+<!-- 🔹 강아지 카드 -->
 <div class="card tile" id="dogCard">
   <h3 style="margin-top:0">🐶 강아지 키우기</h3>
 
@@ -434,70 +435,46 @@
       <div class="bone">🦴 <span id="boneCount">0</span></div>
     </div>
 
-    <!-- 🔹 오른쪽: 정보 / 레벨 / 진행도 / 이름 / 버튼 -->
+    <!-- 🔹 오른쪽: 강아지 정보 -->
     <div class="dog-right card">
 
-      <!-- 레벨 표시 -->
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div class="level-pill">
-          <strong id="dogTierName">거지강아지</strong> · 
-          <span id="dogLevel">Lv.1</span>
-        </div>
-        <div class="pill">🦴 <strong id="boneCount2">0</strong></div>
+      <!-- 강아지 이름 표시 + 수정 버튼 -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong id="petNameDisplay" style="font-size:18px">강아지</strong>
+        <button 
+          id="editPetNameBtn"
+          class="btn ghost"
+          style="font-size:12px;padding:4px 8px"
+        >✏️ 수정</button>
+      </div>
+
+      <!-- 이름 수정 입력칸 -->
+      <div id="petNameEditBox" style="display:none;margin-top:8px;gap:6px;align-items:center">
+        <input 
+          id="petNameInput"
+          class="input"
+          placeholder="새 이름 입력"
+          style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line)"
+        />
+        <button id="savePetNameBtn" class="btn" style="padding:8px 12px;font-size:13px">저장</button>
+      </div>
+
+      <!-- 레벨 / 티어 -->
+      <div class="level-pill" style="margin-top:12px">
+        <strong id="dogTierName">거지강아지</strong> · 
+        <span id="dogLevel">Lv.1</span>
       </div>
 
       <!-- 진행도 -->
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px">
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <span>레벨 진행도</span>
-          <span class="muted" style="font-size:11px">(30/60/90/150/200)</span>
         </div>
         <div class="progress"><span id="dogProgress" style="width:0%"></span></div>
       </div>
 
-      <!-- 체크 정보 -->
-      <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-        <span class="muted" id="checkInfo" style="font-size:12px"></span>
-      </div>
-
-      <!-- ⭐ 강아지 이름 입력 UI (예쁜 버전) -->
-      <div class="petname-box" style="
-          display:flex;
-          align-items:center;
-          gap:6px;
-          margin:12px 0 4px;
-      ">
-        <input 
-          id="petNameInput" 
-          class="input" 
-          placeholder="강아지 이름"
-          style="
-            flex:1;
-            padding:8px 10px;
-            border-radius:12px;
-            border:2px solid var(--line);
-            background:var(--y-50);
-            font-size:14px;
-          "
-        />
-
-        <button 
-          id="savePetNameBtn" 
-          class="btn" 
-          style="
-            padding:8px 12px;
-            border-radius:12px;
-            background:var(--y-300);
-            font-size:13px;
-            white-space:nowrap;
-          "
-        >
-          저장 🐾
-        </button>
-      </div>
-
-      <!-- 행동 버튼 -->
-      <div class="actions" style="margin-top:10px">
+      <!-- 행동 -->
+      <div class="actions" style="margin-top:12px">
         <button data-cost="1" data-action="pet">쓰다듬기 (🦴1)</button>
         <button data-cost="3" data-action="play">놀아주기 (🦴3)</button>
         <button data-cost="5" data-action="feed">밥주기 (🦴5)</button>
@@ -505,9 +482,9 @@
 
       <div id="dogEmojis" style="min-height:40px;margin-top:10px"></div>
 
-    </div><!-- dog-right 끝 -->
-  </div><!-- dog-card 끝 -->
-</div><!-- dogCard 끝 -->
+    </div>
+  </div>
+</div>
 
 
            
@@ -1674,66 +1651,44 @@ async function saveDog(){
 async function updateDogUI() {
   if (!currentUser || !currentYearMonth) return;
 
-  // 1) 예산 초과 여부 체크
+  // 예산 초과 여부
   const overRes = await fetch(`/api/pet/${currentUser.id}/over-budget/${currentYearMonth}`);
   const overData = await overRes.json();
-  const over = overData.overBudget;
+  dogState.isOverBudget = overData.overBudget;
 
-  // 2) 강아지 이름 입력칸 채우기 (petName이 있을 경우)
-  if (dogState.petName) {
-    $('#petNameInput').value = dogState.petName;
-  }
+  // 이름 표시
+  $('#petNameDisplay').textContent = dogState.petName || "강아지";
+  $('#petNameInput').value = dogState.petName || "";
 
-  // 3) 뼈다귀 표시
+  // 뼈다귀 표시
   $('#boneCount').textContent = dogState.bones;
   $('#boneCount2').textContent = dogState.bones;
 
-  // 4) tier 정보 표시
-  const t = tiers[dogState.level - 1];
+  // 티어·레벨 표시
+  const t = tiers[dogState.level - 1] || tiers[0];
   $('#dogTierName').textContent = t.name;
   $('#dogLevel').textContent = `Lv.${dogState.level}`;
 
-  // 5) 진행률 표시
+  // 진행도
   const progress = Math.min(100, Math.round((dogState.xp / t.need) * 100));
   $('#dogProgress').style.width = progress + "%";
 
-  // 6) 강아지 이미지 결정
+  // 이미지 결정
   const dogImgEl = $('#dogImg');
 
-  // 예산 초과라면 무조건 우는 강아지 이미지
-  if (over) {
+  if (dogState.isOverBudget) {
     dogImgEl.style.backgroundImage = `url('/img/Cdog${dogState.level}.png')`;
-  } 
-  // 예산 초과 아니면 일반 이미지
-  else {
-    const imgPath = dogImages[dogState.level] || dogImages[1];
-    dogImgEl.style.backgroundImage = `url('${imgPath}')`;
+  } else {
+    dogImgEl.style.backgroundImage = `url('/img/dog_lv${dogState.level}.png')`;
   }
-
-  dogImgEl.style.backgroundSize = 'cover';
-  dogImgEl.style.backgroundPosition = 'center';
 }
 
-$('#savePetNameBtn').addEventListener('click', async () => {
-  if (!currentUser) return;
-
-  const newName = $('#petNameInput').value.trim();
-  if (!newName) {
-    showToast("이름을 입력하세요!");
-    return;
-  }
-
-  const res = await fetch(`/api/pet/${currentUser.id}/name`, {
-    method: "POST",
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ petName: newName })
-  });
-
-  const pet = await res.json();
-  dogState.petName = pet.petName;
-  showToast("강아지 이름이 저장됐어요!");
-  updateDogUI();
+	// ✏️ 이름 수정 버튼 클릭 → 입력칸 열기
+$('#editPetNameBtn').addEventListener('click', () => {
+  $('#petNameEditBox').style.display = 'flex';
+  $('#petNameInput').value = dogState.petName || "";
 });
+
 
 function addEmojis(type){
   const box = $('#dogEmojis');
